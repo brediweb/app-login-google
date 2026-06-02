@@ -14,7 +14,6 @@ export default function ClientePacotesScreen() {
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
   const [listaplanos, setListaPlanos] = useState([])
-  const [pacoteGratis, setPacoteGratis] = useState(null)
   const { statusTesteGratis, setStatusTesteGratis } = useGlobal()
 
   const carregarPacotes = useCallback(async (opts?: { pull?: boolean }) => {
@@ -47,7 +46,6 @@ export default function ClientePacotesScreen() {
         headers: headersAuth,
       })
       const disponivel = response.data.results?.pacote_disponivel
-      setPacoteGratis(disponivel)
       setStatusTesteGratis(disponivel)
     } catch (error: any) {
       console.log('ERROR Pacote Gratuito: ', error?.response?.data?.message)
@@ -90,26 +88,14 @@ export default function ClientePacotesScreen() {
             .map((item: any, index: any) => (
             <View key={index}>
               {item.status != 0 &&
-                <>{item.id === 4
-                  ? pacoteGratis ?
-                    <CardPacote
-                      props={item}
-                      valor={item.valor}
-                      titulo={item.titulo}
-                      beneficios={item.inclusoes_plano}
-                      observacao={item.descricao_completa}
-                      plano_free_usado={item.utilizou_plano_gratuito}
-                    /> : <></>
-                  : <CardPacote
-                    props={item}
-                    valor={item.valor}
-                    titulo={item.titulo}
-                    beneficios={item.inclusoes_plano}
-                    observacao={item.descricao_completa}
-                    plano_free_usado={item.utilizou_plano_gratuito}
-                  />
-                }
-                </>
+                <CardPacote
+                  props={item}
+                  valor={item.valor}
+                  titulo={item.titulo}
+                  beneficios={item.inclusoes_plano}
+                  observacao={item.descricao_completa}
+                  plano_free_usado={item.utilizou_plano_gratuito}
+                />
               }
             </View>
           ))}

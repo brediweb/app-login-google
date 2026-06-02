@@ -148,19 +148,17 @@ export default function CardPacote({ titulo, beneficios, observacao, valor, prop
           }
 
           <View className='mt-7'>
-            {valor === '0.00'
-              ? plano_free_usado ?
-                <FilledButton
+            {props?.id === 4 && (valor === '0.00' || parseFloat(valor) <= 0)
+              ? plano_free_usado
+                ? <FilledButton
                   disabled={true}
                   onPress={() => { }}
                   title='Plano gratuito utilizado'
                 />
-                :
-                <FilledButton
+                : <FilledButton
                   title='Selecionar'
                   onPress={onSubmit}
                 />
-
               : <FilledButton
                 title='Selecionar'
                 onPress={() => navigate('ClienteTipoPacoteScreen', { props })}
