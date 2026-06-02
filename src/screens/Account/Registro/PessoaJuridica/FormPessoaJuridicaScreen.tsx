@@ -331,11 +331,7 @@ export default function FormPessoaJuridicaScreen({
       const results = data?.results ?? {};
       const message = data?.message ?? 'Não foi possível validar os dados.';
 
-      if (results?.cnpjusado) {
-        Toast.show({ type: 'error', text1: 'CNPJ já cadastrado!' });
-        setErrorCnpj(true);
-        return;
-      }
+
       if (results?.emailusado) {
         Toast.show({ type: 'error', text1: 'E-mail já cadastrado!' });
         setErrorEmail(true);

@@ -29,6 +29,22 @@ interface PropsPacote {
   plano_free_usado: boolean
 }
 
+const PLANO_INICIATE_ID = 4
+const PLANO_SEBRAE_ID = 17
+
+function isPacoteGratuito(valor: string) {
+  const parsed = parseFloat(String(valor).replace(',', '.'))
+  return !Number.isNaN(parsed) && parsed <= 0
+}
+
+function isPlanoAtivacaoDireta(props: any, valor: string) {
+  const planoId = props?.id
+  return (
+    (planoId === PLANO_INICIATE_ID || planoId === PLANO_SEBRAE_ID) &&
+    isPacoteGratuito(valor)
+  )
+}
+
 export default function CardPacote({ titulo, beneficios, observacao, valor, props, plano_free_usado }: PropsPacote) {
   const { navigate } = useNavigate()
   const { setStatusTesteGratis } = useGlobal()
@@ -56,7 +72,7 @@ export default function CardPacote({ titulo, beneficios, observacao, valor, prop
     }
   }
 
-  async function onSubmit() {
+  async function onSubmitAtivacaoGratuita() {
     setLoading(true)
 
     const jsonUsuario = await AsyncStorage.getItem('infos-user')
@@ -74,12 +90,22 @@ export default function CardPacote({ titulo, beneficios, observacao, valor, prop
         const response = await api.post(`/periodo-gratuito/post`, {
           cpf: newJsonPerfil.cpf_represetante,
           email: newJsonPerfil.email,
-          telefone: novoTelefone
+          telefone: novoTelefone,
+          plano_id: props.id,
         }, {
           headers: headers
         })
-        setStatusTesteGratis(false)
-        navigate('ClienteTesteGratisSucessoScreen')
+
+        if (props.id === PLANO_INICIATE_ID) {
+          setStatusTesteGratis(false)
+          navigate('ClienteTesteGratisSucessoScreen')
+        } else if (props.id === PLANO_SEBRAE_ID) {
+          Toast.show({
+            type: 'success',
+            text1: response.data.message ?? 'Plano Sebrae ativado com sucesso!',
+          })
+          navigate('ClienteTabNavigation', { screen: 'HomeClienteScreen' })
+        }
       } catch (error: any) {
         Toast.show({
           type: 'error',
@@ -120,7 +146,7 @@ export default function CardPacote({ titulo, beneficios, observacao, valor, prop
           shadowRadius: 1.0,
         }}>
         <H1 fontWeight={'500'} fontsize={38} title={titulo} color='#000' />
-        <H1 fontWeight={'700'} fontsize={24} title={valor === '0.00' ? 'Grátis' : `R$ ${valor}`} color='#000' />
+        <H1 fontWeight={'700'} fontsize={24} title={isPacoteGratuito(valor) ? 'Grátis' : `R$ ${valor}`} color='#000' />
 
         <View className='mt-4'>
           <Caption fontSize={16}>
@@ -148,7 +174,7 @@ export default function CardPacote({ titulo, beneficios, observacao, valor, prop
           }
 
           <View className='mt-7'>
-            {props?.id === 4 && (valor === '0.00' || parseFloat(valor) <= 0)
+            {isPlanoAtivacaoDireta(props, valor)
               ? plano_free_usado
                 ? <FilledButton
                   disabled={true}
@@ -157,7 +183,7 @@ export default function CardPacote({ titulo, beneficios, observacao, valor, prop
                 />
                 : <FilledButton
                   title='Selecionar'
-                  onPress={onSubmit}
+                  onPress={onSubmitAtivacaoGratuita}
                 />
               : <FilledButton
                 title='Selecionar'

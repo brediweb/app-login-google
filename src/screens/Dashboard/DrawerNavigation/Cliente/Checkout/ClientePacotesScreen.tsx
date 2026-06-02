@@ -84,7 +84,16 @@ export default function ClientePacotesScreen() {
       >
         <View className='mx-7 mt-5 min-h-full'>
           {listaplanos && [...listaplanos]
-            .sort((a: any, b: any) => (a.valor === '0.00' ? -1 : 1) - (b.valor === '0.00' ? -1 : 1))
+            .sort((a: any, b: any) => {
+              const parseValor = (valor: string) => parseFloat(String(valor).replace(',', '.'))
+              const prioridade = (item: any) => {
+                if (item.id === 4) return 0
+                if (item.id === 17) return 1
+                if (parseValor(item.valor) <= 0) return 2
+                return 3
+              }
+              return prioridade(a) - prioridade(b)
+            })
             .map((item: any, index: any) => (
             <View key={index}>
               {item.status != 0 &&

@@ -166,7 +166,7 @@ export default function ClientePerfilInformacoesScreen() {
             value={cnpj}
             keyboardType={'number-pad'}
           />
-          <InputDisabled
+          <InputOutlined
             mt={8}
             label="Endereço"
             value={endereco}

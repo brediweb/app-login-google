@@ -66,6 +66,16 @@ target 'Discontapp' do
       :mac_catalyst_enabled => false,
       :ccache_enabled => ccache_enabled?(podfile_properties),
     )
+
+    # Workaround for Xcode 26.4: fmt 11.0.2 fails consteval checks with Apple Clang
+    installer.pods_project.targets.each do |target|
+      next unless target.name == 'fmt'
+
+      target.build_configurations.each do |build_config|
+        build_config.build_settings['CLANG_CXX_LANGUAGE_STANDARD'] = 'c++17'
+      end
+    end
+
     # Fix "framework 'React' not found": add React.xcframework slice paths so linker finds React.framework
     rncore = installer.sandbox.pod_dir('React-Core-prebuilt')
     rncore_path = rncore ? rncore.to_s : ''

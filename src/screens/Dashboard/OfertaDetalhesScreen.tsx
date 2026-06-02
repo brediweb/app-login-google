@@ -121,6 +121,8 @@ export default function OfertaDetalhesScreen(props: any) {
     getDetalhe()
   }, [])
 
+  
+
   return (
     <>
       <ModalTemplate visible={modalVisible} onClose={handleCloseModal} width={'90%'}>
@@ -157,7 +159,7 @@ export default function OfertaDetalhesScreen(props: any) {
                   <QRCode
                     size={140}
                     logoSize={30}
-                    value={`${item.codigo_cupom}-${item.id}`}
+                    value={`${item.codigo_cupom}-${dadosUser.id}`}
                     logoBackgroundColor='transparent'
                   />
                 </View>
