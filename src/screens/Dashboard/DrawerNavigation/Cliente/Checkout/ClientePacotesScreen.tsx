@@ -103,7 +103,7 @@ export default function ClientePacotesScreen() {
                   titulo={item.titulo}
                   beneficios={item.inclusoes_plano}
                   observacao={item.descricao_completa}
-                  plano_free_usado={item.utilizou_plano_gratuito}
+                  plano_free_usado={item.id === 4 && item.utilizou_plano_gratuito}
                 />
               }
             </View>

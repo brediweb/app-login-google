@@ -22,46 +22,81 @@ export default function AvaliacaoScreen({ route }: { route?: any }) {
   const [contatoMarcado, setContatoMarcado] = useState('')
   const [selecionaAvalaicao, setSelecionaAvalaicao] = useState('')
 
-  async function onSubmit() {
-    const jsonValue = await AsyncStorage.getItem('infos-user')
+  function resolverAnuncianteId() {
+    const params = route?.params
+    if (!params) return undefined
+    if (Array.isArray(params)) {
+      return params[0]?.anunciante_id ?? params[0]?.id_anunciante
+    }
+    return (
+      params.id_anunciante ??
+      params.anunciante_id ??
+      params.anuncianteId ??
+      params[0]?.anunciante_id
+    )
+  }
 
+  async function onSubmit() {
+   
     if (!selecionaAvalaicao) {
-      Alert.alert('Error', 'Selecione uma avaliação')
+      Alert.alert('Erro', 'Selecione uma avaliação')
+      return
+    }
+
+    if (contato === null || contato === undefined) {
+      Alert.alert('Erro', 'Informe se permite contato')
+      return
+    }
+
+    const anuncianteId = resolverAnuncianteId()
+    if (!anuncianteId && !id_oferta) {
+      Alert.alert('Erro', 'Não foi possível identificar o anunciante')
+      return
     }
 
     setLoading(true)
-    if (jsonValue) {
-      const newJson = JSON.parse(jsonValue)
-
-      try {
-        const headers = {
-          Authorization: `Bearer ${newJson.token}`,
-        }
-        const formData = {
-          anunciante_id: route.params.id_anunciante ?? route.params[0].anunciante_id, // está incorreto, deve ser o id do anunciante
-          comentario: mensagem.length <= 1 ? 'Sem comentários' : mensagem,
-          avaliacao: selecionaAvalaicao,
-          permissao_contato: contato
-        }
-        const response = await api.post(`/avaliacoes/post`, formData, { headers })
-        setMensagen('')
-        setContato(null)
-        setContatoMarcado('')
-        setSelecionaAvalaicao('')
-        Toast.show({
-          type: 'success',
-          text1: response.data.message ?? 'Avaliação realizada com sucesso',
-        })
-        goBack()
-      } catch (error: any) {
+    try {
+      const jsonValue = await AsyncStorage.getItem('infos-user')
+      if (!jsonValue) {
         Toast.show({
           type: 'error',
-          text1: error.response.data.message ?? 'Erro ao avaliar',
+          text1: 'Sessão expirada. Faça login novamente.',
         })
-        console.error('ERRR avaliações: ', error.response.data);
+        return
       }
+
+      const newJson = JSON.parse(jsonValue)
+      const headers = {
+        Authorization: `Bearer ${newJson.token}`,
+      }
+      const formData = {
+        anunciante_id: anuncianteId ?? id_oferta,
+        comentario: mensagem.length <= 1 ? 'Sem comentários' : mensagem,
+        avaliacao: selecionaAvalaicao,
+        permissao_contato: contato,
+      }
+
+      const response = await api.post(`/avaliacoes/post`, formData, { headers })
+      setMensagen('')
+      setContato(null)
+      setContatoMarcado('')
+      setSelecionaAvalaicao('')
+      Toast.show({
+        type: 'success',
+        text1: response.data.message ?? 'Avaliação realizada com sucesso',
+      })
+      goBack()
+    } catch (error: any) {
+      const mensagemErro =
+        error?.response?.data?.message ?? 'Erro ao enviar avaliação'
+      Toast.show({
+        type: 'error',
+        text1: mensagemErro,
+      })
+      console.error('ERRR avaliações: ', error?.response?.data ?? error)
+    } finally {
+      setLoading(false)
     }
-    setLoading(false)
   }
 
   const handleContato = (option: string) => {

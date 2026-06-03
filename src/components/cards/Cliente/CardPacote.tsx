@@ -175,7 +175,7 @@ export default function CardPacote({ titulo, beneficios, observacao, valor, prop
 
           <View className='mt-7'>
             {isPlanoAtivacaoDireta(props, valor)
-              ? plano_free_usado
+              ? props?.id === PLANO_INICIATE_ID && plano_free_usado
                 ? <FilledButton
                   disabled={true}
                   onPress={() => { }}

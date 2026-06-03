@@ -4,7 +4,7 @@ import QRCode from 'react-native-qrcode-svg'
 import LottieView from 'lottie-react-native'
 import { colors } from '../../styles/colors'
 import H3 from '../../components/typography/H3'
-import React, { useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 import { useNavigate } from '../../hooks/useNavigate'
 import { useIsFocused } from '@react-navigation/native'
 import Caption from '../../components/typography/Caption'
@@ -14,82 +14,98 @@ import HeaderPrimary from '../../components/header/HeaderPrimary'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import MainLayoutAutenticado from '../../components/layout/MainLayoutAutenticado'
 import ButtonOutline from '@components/buttons/ButtonOutline'
-import Spacing from '@components/layout/Spacing'
+
+function resolverIdOferta(cupom: any) {
+  return cupom?.idOferta ?? cupom?.id_oferta ?? cupom?.oferta_id ?? cupom?.id
+}
 
 export default function OfertaDetalhesScreen(props: any) {
   const isFocused = useIsFocused()
   const { navigate, goBack } = useNavigate()
+  const cupomParam = props.route?.params?.cupom
+  const ofertaIdRoute = resolverIdOferta(cupomParam)
   const [idOferta, setIdOferta] = useState('')
-  const [loading, setLoading] = useState(false)
-  const [dadosUser, setDadosUser] = useState<any>([])
-  const [propsOferta, setPropsOferta] = useState<any>([])
+  const [loading, setLoading] = useState(true)
+  const [dadosUser, setDadosUser] = useState<any>(null)
+  const [propsOferta, setPropsOferta] = useState<any[]>([])
   const [modalVisible, setModalVisible] = useState(false)
   const [mensagemSucesso, setMensagemSucesso] = useState(false)
 
-  const getData = async () => {
+  const carregarDetalhes = useCallback(async () => {
     setLoading(true)
+    setMensagemSucesso(false)
+    setModalVisible(false)
+    setPropsOferta([])
+
     try {
       const jsonValue = await AsyncStorage.getItem('infos-user')
-      if (jsonValue) {
-        const newJson = JSON.parse(jsonValue)
-        setDadosUser(newJson)
 
+      if (!jsonValue || !ofertaIdRoute) {
+        return
       }
-    } catch (error: any) {
-      console.error(error)
-    }
-    setLoading(false)
-  }
 
-  async function getDetalhe() {
-    const jsonValue = await AsyncStorage.getItem('infos-user')
-    if (jsonValue) {
       const newJson = JSON.parse(jsonValue)
       setDadosUser(newJson)
+
+      const headers = {
+        Authorization: `Bearer ${newJson.token}`,
+      }
+      const response = await api.get(`/cupons/${ofertaIdRoute}`, { headers })
+      const results = response.data.results
+      const lista = Array.isArray(results) ? results : results ? [results] : []
+
+      if (lista.length > 0) {
+        setPropsOferta(lista)
+        setIdOferta(String(lista[0].id ?? ofertaIdRoute))
+      }
+    } catch (error: any) {
+      console.log('ERROR GET Detalhe Oferta:', error?.response?.data ?? error)
+    } finally {
+      setLoading(false)
+    }
+  }, [ofertaIdRoute])
+
+  useEffect(() => {
+    if (isFocused) {
+      void carregarDetalhes()
+    }
+  }, [isFocused, carregarDetalhes])
+
+  useEffect(() => {
+    if (!isFocused || !idOferta || mensagemSucesso) {
+      return
+    }
+
+    let ativo = true
+
+    async function verificarCupom() {
       try {
+        const jsonValue = await AsyncStorage.getItem('infos-user')
+        if (!jsonValue || !ativo) return
+
+        const newJson = JSON.parse(jsonValue)
         const headers = {
           Authorization: `Bearer ${newJson.token}`,
         }
-        const response = await api.get(`/cupons/${props.route.params.cupom.idOferta}`, {
-          headers: headers
-        })
-        setPropsOferta(response.data.results)
-        setIdOferta(response.data.results[0].id)
+        const response = await api.get(`/meus-cupoms/verificar?idOferta=${idOferta}`, { headers })
 
-      } catch (error: any) {
-        console.log(error.response.data)
-      }
-    }
-  }
-
-  useEffect(() => {
-    const intervalId = setInterval(async () => {
-      try {
-        const jsonValue = await AsyncStorage.getItem('infos-user')
-        if (jsonValue) {
-          const newJson = JSON.parse(jsonValue)
-          setDadosUser(newJson)
-          const headers = {
-            Authorization: `Bearer ${newJson.token}`,
-          }
-          const response = await api.get(`/meus-cupoms/verificar?idOferta=${propsOferta ? propsOferta[0].id : idOferta}`, { headers })
-          if (response.data.results.verificado) {
-            clearInterval(intervalId)
-            setMensagemSucesso(true)
-            setModalVisible(true)
-          }
+        if (response.data.results.verificado && ativo) {
+          setMensagemSucesso(true)
+          setModalVisible(true)
         }
       } catch (error: any) {
-        console.error('Error GET Verificar:', error.response.data);
+        console.error('Error GET Verificar:', error?.response?.data)
       }
-    }, 5000); // 5000 milliseconds = 5 seconds
+    }
 
+    void verificarCupom()
+    const intervalId = setInterval(verificarCupom, 5000)
 
     return () => {
-      // Certifique-se de limpar o intervalo quando o componente é desmontado
-      clearInterval(intervalId);
-    };
-  }, [isFocused])
+      ativo = false
+      clearInterval(intervalId)
+    }
+  }, [isFocused, idOferta, mensagemSucesso])
 
   const handleCloseModal = () => {
     setModalVisible(false)
@@ -98,30 +114,17 @@ export default function OfertaDetalhesScreen(props: any) {
 
   const handleCloseModalSucesso = () => {
     setModalVisible(false)
-    navigate('AvaliacaoScreen', { id_anunciante: props.route.params.cupom.cliente_id, id_oferta: props.route.params.cupom.idOferta })
+    navigate('AvaliacaoScreen', {
+      id_anunciante: cupomParam?.cliente_id,
+      id_oferta: ofertaIdRoute,
+    })
   }
 
   const handleCloseModalVoltar = () => {
     setModalVisible(false)
   }
 
-  useEffect(() => {
-    if (isFocused) {
-      setMensagemSucesso(false)
-      setModalVisible(false)
-      getData()
-      getDetalhe()
-    }
-  }, [isFocused])
-
-  useEffect(() => {
-    setMensagemSucesso(false)
-    setModalVisible(false)
-    getData()
-    getDetalhe()
-  }, [])
-
-  
+  const oferta = propsOferta[0]
 
   return (
     <>
@@ -144,13 +147,13 @@ export default function OfertaDetalhesScreen(props: any) {
       </ModalTemplate>
       <MainLayoutAutenticado marginHorizontal={0} marginTop={0} loading={loading}>
         <View className='w-full h-[4%] ' />
-        {propsOferta && propsOferta.slice(0, 1).map((item: any) => (
-          <View className='flex-1' key={item}>
+        {!loading && oferta && dadosUser &&
+          <View className='flex-1'>
             <View className='mr-4'>
-              <HeaderPrimary titulo={`Detalhes: ${item.titulo_oferta}`} voltarScreen={() => navigate('Meus Cupons')} />
+              <HeaderPrimary titulo={`Detalhes: ${oferta.titulo_oferta}`} voltarScreen={() => navigate('Meus Cupons')} />
             </View>
-            <View key={item.id} className='flex-1 h-full w-full justify-center items-center mt-12'>
-              {mensagemSucesso === false &&
+            <View className='flex-1 h-full w-full justify-center items-center mt-12'>
+              {!mensagemSucesso &&
                 <LottieView style={{ width: 120, height: 120 }} source={require('../../animations/buscando.json')} autoPlay loop />
               }
               <View className='mx-4 my-4'>
@@ -159,7 +162,7 @@ export default function OfertaDetalhesScreen(props: any) {
                   <QRCode
                     size={140}
                     logoSize={30}
-                    value={`${item.codigo_cupom}-${dadosUser.id}`}
+                    value={`${oferta.codigo_cupom}-${dadosUser.id}`}
                     logoBackgroundColor='transparent'
                   />
                 </View>
@@ -167,7 +170,7 @@ export default function OfertaDetalhesScreen(props: any) {
                   CÓDIGO AUXILIAR
                 </Caption>
                 <Caption margintop={8} align={'center'} fontSize={16} fontWeight={'bold'}>
-                  {item.codigo_cupom}
+                  {oferta.codigo_cupom}
                 </Caption>
                 <Caption align={'center'} fontSize={12}>
                   CÓDIGO CLIENTE
@@ -178,8 +181,13 @@ export default function OfertaDetalhesScreen(props: any) {
               </View>
             </View>
           </View>
-        ))}
+        }
+        {!loading && !oferta &&
+          <View className='mx-7 mt-12'>
+            <H3 align='center'>Não foi possível carregar os detalhes do cupom.</H3>
+          </View>
+        }
       </MainLayoutAutenticado>
     </>
-  );
+  )
 }
