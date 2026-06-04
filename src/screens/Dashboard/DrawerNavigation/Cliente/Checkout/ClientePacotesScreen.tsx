@@ -6,7 +6,7 @@ import H3 from '../../../../../components/typography/H3'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { useGlobal } from '../../../../../context/GlobalContextProvider'
 import HeaderPrimary from '../../../../../components/header/HeaderPrimary'
-import CardPacote from '../../../../../components/cards/Cliente/CardPacote'
+import CardPacote, { isPacoteGratuito } from '../../../../../components/cards/Cliente/CardPacote'
 import MainLayoutAutenticado from '../../../../../components/layout/MainLayoutAutenticado'
 
 export default function ClientePacotesScreen() {
@@ -85,12 +85,10 @@ export default function ClientePacotesScreen() {
         <View className='mx-7 mt-5 min-h-full'>
           {listaplanos && [...listaplanos]
             .sort((a: any, b: any) => {
-              const parseValor = (valor: string) => parseFloat(String(valor).replace(',', '.'))
               const prioridade = (item: any) => {
                 if (item.id === 4) return 0
-                if (item.id === 17) return 1
-                if (parseValor(item.valor) <= 0) return 2
-                return 3
+                if (isPacoteGratuito(item.valor)) return 1
+                return 2
               }
               return prioridade(a) - prioridade(b)
             })
@@ -103,7 +101,7 @@ export default function ClientePacotesScreen() {
                   titulo={item.titulo}
                   beneficios={item.inclusoes_plano}
                   observacao={item.descricao_completa}
-                  plano_free_usado={item.id === 4 && item.utilizou_plano_gratuito}
+                  plano_free_usado={item.id === 4 && !!item.utilizou_plano_gratuito}
                 />
               }
             </View>
