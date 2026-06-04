@@ -117,6 +117,8 @@ export default function CardPacote({ titulo, beneficios, observacao, valor, prop
   const [loading, setLoading] = useState(false)
   const [modalDetalhesVisible, setModalDetalhesVisible] = useState(false)
   const [modalLimiteVisible, setModalLimiteVisible] = useState(false)
+  const [modalErroVisible, setModalErroVisible] = useState(false)
+  const [mensagemErro, setMensagemErro] = useState('')
   const planoId = props?.id
   const iniciateJaUtilizado = planoIniciateJaUtilizado(planoId, plano_free_usado)
   const programaJaUtilizado = planoProgramaJaUtilizado(planoId, valor, props)
@@ -132,6 +134,23 @@ export default function CardPacote({ titulo, beneficios, observacao, valor, prop
 
   const handleCloseModalLimite = () => {
     setModalLimiteVisible(false)
+  }
+
+  const handleCloseModalErro = () => {
+    setModalErroVisible(false)
+    setMensagemErro('')
+  }
+
+  function extrairMensagemErro(error: any) {
+    const data = error?.response?.data
+    if (typeof data?.message === 'string' && data.message.trim()) return data.message
+    if (typeof data?.erro === 'string' && data.erro.trim()) return data.erro
+    return 'Ocorreu um erro, tente novamente mais tarde.'
+  }
+
+  function abrirModalErro(mensagem: string) {
+    setMensagemErro(mensagem)
+    setModalErroVisible(true)
   }
 
   function handleSelecionar() {
@@ -196,10 +215,7 @@ export default function CardPacote({ titulo, beneficios, observacao, valor, prop
     try {
       const jsonUsuario = await AsyncStorage.getItem('infos-user')
       if (!jsonUsuario) {
-        Toast.show({
-          type: 'error',
-          text1: 'Sessão expirada. Faça login novamente.',
-        })
+        abrirModalErro('Sessão expirada. Faça login novamente.')
         return
       }
 
@@ -211,10 +227,7 @@ export default function CardPacote({ titulo, beneficios, observacao, valor, prop
       if (isPlanoIniciate(planoId)) {
         const jsonPerfil = await AsyncStorage.getItem('dados-perfil')
         if (!jsonPerfil) {
-          Toast.show({
-            type: 'error',
-            text1: 'Complete seu perfil antes de ativar o plano.',
-          })
+          abrirModalErro('Complete seu perfil antes de ativar o plano.')
           return
         }
         const perfil = JSON.parse(jsonPerfil)
@@ -223,10 +236,7 @@ export default function CardPacote({ titulo, beneficios, observacao, valor, prop
         await onSubmitConcederPlanoGratuito(headers)
       }
     } catch (error: any) {
-      Toast.show({
-        type: 'error',
-        text1: error?.response?.data?.message ?? 'Ocorreu um erro, tente novamente mais tarde.',
-      })
+      abrirModalErro(extrairMensagemErro(error))
       console.error('ERROR ativação plano:', error?.response?.data)
     } finally {
       setLoading(false)
@@ -323,6 +333,19 @@ export default function CardPacote({ titulo, beneficios, observacao, valor, prop
                 </Caption>
                 <View className='mt-6'>
                   <FilledButton title='Entendi' onPress={handleCloseModalLimite} />
+                </View>
+              </View>
+            </ModalTemplate>
+            <ModalTemplate visible={modalErroVisible} onClose={handleCloseModalErro} width={'90%'}>
+              <View className='py-2'>
+                <H3 align='center' color={colors.error20}>
+                  Não foi possível ativar
+                </H3>
+                <Caption align='center' fontSize={15} margintop={12}>
+                  {mensagemErro}
+                </Caption>
+                <View className='mt-6'>
+                  <FilledButton title='Entendi' onPress={handleCloseModalErro} />
                 </View>
               </View>
             </ModalTemplate>
