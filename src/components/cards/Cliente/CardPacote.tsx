@@ -82,19 +82,19 @@ export default function CardPacote({ titulo, beneficios, observacao, valor, prop
       const newJsonUsuario = JSON.parse(jsonUsuario)
       const newJsonPerfil = JSON.parse(jsonPerfil)
       const novoTelefone = RemoveCaracteres({ text: newJsonPerfil.telefone })
-
       try {
         const headers = {
           Authorization: `Bearer ${newJsonUsuario.token}`
         }
-        const response = await api.post(`/periodo-gratuito/post`, {
-          cpf: newJsonPerfil.cpf_represetante,
-          email: newJsonPerfil.email,
-          telefone: novoTelefone,
-          plano_id: props.id,
-        }, {
-          headers: headers
-        })
+        if (props.id === 4) {
+          const response = await api.post(`/periodo-gratuito/post`, {
+            cpf: newJsonPerfil.cpf_represetante,
+            email: newJsonPerfil.email,
+            telefone: novoTelefone,
+            plano_id: props.id,
+          }, {
+            headers: headers
+          })
 
         if (props.id === PLANO_INICIATE_ID) {
           setStatusTesteGratis(false)
@@ -106,6 +106,23 @@ export default function CardPacote({ titulo, beneficios, observacao, valor, prop
           })
           navigate('ClienteTabNavigation', { screen: 'HomeClienteScreen' })
         }
+          
+        } else {
+          const response = await api.post(`/conceder-plano`, {
+            plano_id: props.id,
+          }, {
+            headers: headers
+          })
+
+          console.log('response', response.data);
+          
+          Toast.show({
+            type: 'success',
+            text1: response.data.message ?? 'Plano Sebrae ativado com sucesso!',
+          })
+          navigate('ClienteTabNavigation', { screen: 'HomeClienteScreen' })
+        }
+
       } catch (error: any) {
         Toast.show({
           type: 'error',
