@@ -1011,13 +1011,12 @@ export default function ClienteCriaCuponScreen() {
                 keyboardType={'default'}
                 onChange={setCodigoCupom}
               />
-              <InputOutlined
+              <InputOutlinedMoney
                 mt={12}
                 label="Valor do Item (R$)"
                 value={valorItem}
-                edicao={false}
+                editable={false}
                 error={errorValorItem}
-                keyboardType={'number-pad'}
                 placeholder="Valor do Item (R$)"
               />
               <Text className="mt-4 mb-2 font-medium">
