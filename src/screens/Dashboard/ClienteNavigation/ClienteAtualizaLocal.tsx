@@ -38,6 +38,13 @@ function coordenadasValidas(lat: number, lng: number) {
   )
 }
 
+function normalizarCoordenada(coordinate: { latitude: number; longitude: number }) {
+  return {
+    latitude: Number(coordinate.latitude.toFixed(6)),
+    longitude: Number(coordinate.longitude.toFixed(6)),
+  }
+}
+
 export default function ClienteAtualizaLocal() {
   const { goBack } = useNavigate()
   const isFocused = useIsFocused()
@@ -196,8 +203,9 @@ export default function ClienteAtualizaLocal() {
   }, [localizacao, localizacaoGPS])
 
   useEffect(() => {
-    setInputLatitude(regiao?.latitude)
-    setInputLongitude(regiao?.longitude)
+    if (regiao?.latitude == null || regiao?.longitude == null) return
+    setInputLatitude(String(regiao.latitude))
+    setInputLongitude(String(regiao.longitude))
   }, [regiao])
 
   useEffect(() => {
@@ -257,7 +265,7 @@ export default function ClienteAtualizaLocal() {
             showsTraffic={false}
             zoomTapEnabled
             showsBuildings={false}
-            onPress={(event) => setRegiao(event.nativeEvent.coordinate as any)}
+            onPress={(event) => setRegiao(normalizarCoordenada(event.nativeEvent.coordinate))}
           >
             {regiao && (
               <Marker
@@ -266,11 +274,11 @@ export default function ClienteAtualizaLocal() {
                   longitude: regiao.longitude,
                 }}
                 draggable
-                onDragEnd={(e) => setRegiao(e.nativeEvent.coordinate as any)}
+                onDragEnd={(e) => setRegiao(normalizarCoordenada(e.nativeEvent.coordinate))}
                 pinColor={'#5D35F1'}
-                anchor={{ x: 0.69, y: 1 }}
-                title='Nova localização marcada'
-                centerOffset={{ x: -18, y: -60 }}
+                anchor={{ x: 0.5, y: 1 }}
+                tracksViewChanges={false}
+                title='Localização selecionada'
               />
             )}
           </MapView>
@@ -287,7 +295,9 @@ export default function ClienteAtualizaLocal() {
         <FilledButton
           title='Atualizar'
           onPress={postPerfil}
-          disabled={inputLatitude?.length <= 4 || inputLatitude?.length <= 4 ? true : false}
+          disabled={
+            String(inputLatitude).length <= 4 || String(inputLongitude).length <= 4
+          }
         />
       </View>
     </MainLayoutAutenticado >

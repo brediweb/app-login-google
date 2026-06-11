@@ -9,6 +9,7 @@ const MENU_ITEMS = [
   { label: 'Trocar Foto', screen: 'ClientePerfilTrocarFotoScreen' as const },
   { label: 'Atualizar Categoria', screen: 'ClientePerfilCategoriaScreen' as const },
   { label: 'Atualizar Informações', screen: 'ClientePerfilInformacoesScreen' as const },
+  { label: 'Atualizar Localização de sua Empresa', screen: 'ClienteAtualizaLocal' as const },
   { label: 'Atualizar Horários de Funcionamento', screen: 'FormAtualizarHorarioScreen' as const },
 ]
 

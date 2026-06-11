@@ -17,6 +17,7 @@ import ClientePerfilInformacoesScreen from '../../screens/Dashboard/ClienteNavig
 import ClientePerfilCategoriaScreen from '../../screens/Dashboard/ClienteNavigation/ClientePerfilCategoriaScreen'
 import ClientePerfilTrocarFotoScreen from '../../screens/Dashboard/ClienteNavigation/ClientePerfilTrocarFotoScreen'
 import FormAtualizarHorarioScreen from '@screens/Dashboard/ClienteNavigation/FormAtualizarHorarioScreen'
+import ClienteAtualizaLocal from '../../screens/Dashboard/ClienteNavigation/ClienteAtualizaLocal'
 
 const Tab = createBottomTabNavigator();
 
@@ -107,6 +108,14 @@ export default function ClienteTabNavigation() {
         name="FormAtualizarHorarioScreen"
         component={FormAtualizarHorarioScreen}
         options={{
+          tabBarItemStyle: { display: 'none' },
+        }}
+      />
+      <Tab.Screen
+        name="ClienteAtualizaLocal"
+        component={ClienteAtualizaLocal}
+        options={{
+          headerShown: false,
           tabBarItemStyle: { display: 'none' },
         }}
       />
