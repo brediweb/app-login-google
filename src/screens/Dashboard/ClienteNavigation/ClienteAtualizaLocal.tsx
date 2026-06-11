@@ -249,8 +249,9 @@ export default function ClienteAtualizaLocal() {
   }, [regiaoMapa.latitude, regiaoMapa.longitude])
 
   return (
-    <MainLayoutAutenticado loading={loading} marginTop={0} marginHorizontal={0}>
-      <HeaderPrimary titulo='Atualizar empreendimento' />
+     <MainLayoutAutenticado notScroll marginTop={20} marginHorizontal={16}>
+      <HeaderPrimary 
+      titulo='Atualizar empreendimento' />
       <View className='flex-1 h-[60vh] w-full mt-4'>
         <View className='my-4 mx-6'>
           <H5>Clique em qualquer parte do mapa e arraste para posição desejada</H5>
