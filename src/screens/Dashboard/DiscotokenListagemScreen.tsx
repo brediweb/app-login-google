@@ -12,6 +12,7 @@ import { colors } from '../../styles/colors';
 import { requestForegroundPermissionsAsync } from 'expo-location';
 import FilledButton from '../../components/buttons/FilledButton';
 import Spacing from '@components/layout/Spacing'
+import { useNavigate } from '../../hooks/useNavigate'
 
 const LOGO_DISCONTOKEN_FALLBACK = require('../../../assets/img/logoHeader.png')
 
@@ -115,11 +116,14 @@ export default function DiscotokenListagemScreen() {
     const [cupomAtual, setCupomAtual] = useState({} as any)
     const [isModal, setIsModal] = useState(false)
     const [permissaoLocal, setPermissaoLocal] = useState(false)
+    const [usuarioCliente, setUsuarioCliente] = useState<number | null>(null)
+    const { navigate } = useNavigate()
 
     async function getCupons() {
         const jsonValue = await AsyncStorage.getItem('infos-user')
         if (jsonValue) {
             const newJson = JSON.parse(jsonValue)
+            setUsuarioCliente(newJson.id ?? null)
             try {
                 const headers = {
                     Authorization: `Bearer ${newJson.token}`,
@@ -136,6 +140,14 @@ export default function DiscotokenListagemScreen() {
     function handleCupom(cupom: any) {
         setCupomAtual(cupom)
         setIsModal(true)
+    }
+
+    function handleGerarQrCode() {
+        setIsModal(false)
+        navigate('DiscotokenQrCodeScreen', {
+            cupom: cupomAtual,
+            usuarioCliente,
+        })
     }
 
     async function getPermissionIOS() {
@@ -289,6 +301,10 @@ export default function DiscotokenListagemScreen() {
                                     </Caption>
                                 </View>
                             )}
+
+                            <View style={{ marginTop: 16 }}>
+                                <FilledButton onPress={handleGerarQrCode} title="Gerar QR Code Discontoken" />
+                            </View>
 
                             <LinhaDadoModal label="Nome empresarial" valor={anuncianteModal.nome_empresarial} />
                             <LinhaDadoModal label="Endereço" valor={anuncianteModal.endereco} />

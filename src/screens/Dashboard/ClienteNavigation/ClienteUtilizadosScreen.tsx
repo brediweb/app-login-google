@@ -1,4 +1,4 @@
-import { View } from 'react-native'
+import { View, Text, TouchableOpacity } from 'react-native'
 import { api } from '../../../service/api'
 import { useEffect, useState } from 'react'
 import Toast from 'react-native-toast-message'
@@ -13,6 +13,7 @@ import ButtonOutline from '../../../components/buttons/ButtonOutline'
 import MainLayoutAutenticado from '../../../components/layout/MainLayoutAutenticado'
 import ButtonClienteSwitch from '../../../components/buttons/Cliente/ButtonClienteSwitch'
 import ButtonsTecladoCamera from '../../../components/buttons/Cliente/ButtonsTecladoCamera'
+import { discotokenHabilitaDiscontoken } from '../../../utils/discontokenPerfil'
 import React from 'react'
 
 export default function ClienteUtilizadosScreen({ route }: { route?: any }) {
@@ -21,6 +22,7 @@ export default function ClienteUtilizadosScreen({ route }: { route?: any }) {
   const [loading, setLoading] = useState(true)
   const [oferta, setOferta] = useState<any>([])
   const [ofertaInativa, setOfertaInativa] = useState<any>([])
+  const [anuncianteDiscontoken, setAnuncianteDiscontoken] = useState(false)
 
 
   async function getCuponsGerados() {
@@ -29,6 +31,7 @@ export default function ClienteUtilizadosScreen({ route }: { route?: any }) {
 
     if (jsonValue) {
       const newJson = JSON.parse(jsonValue)
+      setAnuncianteDiscontoken(discotokenHabilitaDiscontoken(newJson.discotoken))
       try {
         const headers = {
           Authorization: `Bearer ${newJson.token}`,
@@ -111,6 +114,35 @@ export default function ClienteUtilizadosScreen({ route }: { route?: any }) {
 
           <View className=''>
             <H5>Meus anúncios</H5>
+            {anuncianteDiscontoken && (
+              <View
+                className='mt-3 mb-2 rounded-2xl p-3'
+                style={{
+                  backgroundColor: '#E9DDFF',
+                  borderWidth: 1,
+                  borderColor: colors.secondary70,
+                }}
+              >
+                <Text
+                  className='text-base'
+                  style={{ color: colors.secondary50, fontFamily: 'Poppins_600SemiBold' }}
+                >
+                  Discontoken
+                </Text>
+                <Caption fontSize={13} margintop={4} color={colors.secondary30}>
+                  Use a câmera para validar cupons dos clientes Discontoken.
+                </Caption>
+                <TouchableOpacity
+                  className='mt-3 rounded-full px-4 py-2 self-start'
+                  style={{ backgroundColor: colors.secondary50 }}
+                  onPress={() => navigate('CameraDiscontokenScreen')}
+                >
+                  <Text style={{ color: '#fff', fontFamily: 'Poppins_500Medium', fontSize: 13 }}>
+                    Validar cupom Discontoken
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            )}
             {oferta && oferta.slice(0, 3).filter((item: any) => item.quantidade_cupons > 0).map((item: any, index: any) => (
               <ButtonClienteSwitch
                 key={index}

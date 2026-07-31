@@ -18,6 +18,7 @@ import ClientePerfilCategoriaScreen from '../../screens/Dashboard/ClienteNavigat
 import ClientePerfilTrocarFotoScreen from '../../screens/Dashboard/ClienteNavigation/ClientePerfilTrocarFotoScreen'
 import FormAtualizarHorarioScreen from '@screens/Dashboard/ClienteNavigation/FormAtualizarHorarioScreen'
 import ClienteAtualizaLocal from '../../screens/Dashboard/ClienteNavigation/ClienteAtualizaLocal'
+import CameraDiscontokenScreen from '../../screens/Dashboard/ClienteNavigation/CameraDiscontokenScreen'
 
 const Tab = createBottomTabNavigator();
 
@@ -170,6 +171,16 @@ export default function ClienteTabNavigation() {
       <Tab.Screen
         name="Câmera"
         component={CameraScreen}
+        options={{
+          headerShown: false,
+          tabBarItemStyle: {
+            display: 'none'
+          },
+        }}
+      />
+      <Tab.Screen
+        name="CameraDiscontokenScreen"
+        component={CameraDiscontokenScreen}
         options={{
           headerShown: false,
           tabBarItemStyle: {

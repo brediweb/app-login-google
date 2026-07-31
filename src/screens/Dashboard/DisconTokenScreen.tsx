@@ -4,7 +4,6 @@ import { colors } from '../../styles/colors'
 import H1 from '../../components/typography/H1'
 import React, { useEffect, useState } from 'react'
 import { useIsFocused } from '@react-navigation/native'
-import Caption from '../../components/typography/Caption'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { View, KeyboardAvoidingView, Platform, Image } from 'react-native'
 import MainLayoutAutenticado from '../../components/layout/MainLayoutAutenticado'
@@ -12,64 +11,54 @@ import FilledButton from '../../components/buttons/FilledButton'
 import { TouchableOpacity } from 'react-native'
 import { useNavigate } from '../../hooks/useNavigate'
 import QRCode from 'react-native-qrcode-svg'
+import { SvgXml } from 'react-native-svg'
+
+interface Carteirinha {
+  codigo?: string
+  user_name?: string
+  codigo_cliente?: string | number
+  associacao_nome?: string
+  associacao_logo?: string
+  codigo_associacao?: string | number
+  associacao_id?: string | number
+  qr_code?: string
+}
 
 export default function DisconTokenScreen() {
   const isFocused = useIsFocused()
-  const [cpf, setCpf] = useState('')
   const [loading, setLoadig] = useState(true)
-  const [telefone, setTelefone] = useState('')
   const [associado, setAssociado] = useState(false)
-  const [nomeCompleto, setNomeCompleto] = useState('')
-  const [carteirinha, setCarteirinha] = useState({})
+  const [carteirinha, setCarteirinha] = useState<Carteirinha | null>(null)
 
   const { goBack } = useNavigate();
 
   const getCarteirinha = async () => {
     setLoadig(true)
     const jsonValue = await AsyncStorage.getItem('infos-user')
-    const jsonValuePefil = await AsyncStorage.getItem('dados-perfil')
-    if (jsonValue && jsonValuePefil) {
+    if (jsonValue) {
       const newJson = JSON.parse(jsonValue)
       const headers = {
         Authorization: `Bearer ${newJson.token}`,
       }
+      console.log(headers);
       try {
         const response = await api.get(`/carteirinha-discotoken`, { headers })
-        console.log('carteirinha', response.data.results)
         setCarteirinha(response.data.results)
         setAssociado(true)
       } catch (error: any) {
-        setCarteirinha(false)
+        setCarteirinha(null)
         setAssociado(false)
-        console.error('GET Erro Perfil(DisconToken):', error)
+        console.error('GET Erro Perfil(DisconToken):', error?.response?.data ?? error)
       }
+    } else {
+      setCarteirinha(null)
+      setAssociado(false)
     }
     setLoadig(false)
   }
 
-  const handlePhoneMask = (value: any) => {
-    let phone = value
-      .replace(/\D/g, "")
-      .replace(/(\d{2})(\d)/, "($1) $2")
-      .replace(/(\d{4})(\d)/, "$1-$2")
-      .replace(/(\d{4})-(\d)(\d{4})/, "$1$2-$3");
-    setTelefone(phone);
-  }
-
-  const handleCPFMask = (value: any) => {
-    let cpf = value
-      .replace(/\D/g, "")
-      .replace(/(\d{3})(\d)/, "$1.$2")
-      .replace(/(\d{3})(\d)/, "$1.$2")
-      .replace(/(\d{3})(\d{2})$/, "$1-$2");
-    setCpf(cpf);
-  }
-
   useEffect(() => {
-    getCarteirinha()
-  }, [])
-
-  useEffect(() => {
+    if (!isFocused) return
     getCarteirinha()
   }, [isFocused])
 
@@ -80,7 +69,7 @@ export default function DisconTokenScreen() {
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
         {carteirinha &&
-          <View className='mb-4 border rounded-2xl pb-6'>
+          <View className='mb-4 border rounded-2xl pb-6 mt-20'>
             <View className='rounded-t-2xl'>
               <View className='flex flex-row items-center justify-between border-b p-6'>
                 <Text className='text-lg' style={{ fontFamily: 'Poppins_400Regular' }}>Discontoken</Text>
@@ -102,17 +91,23 @@ export default function DisconTokenScreen() {
                   </View>
                 </View>
               </View>
-              {
-                carteirinha?.codigo &&
+              {(carteirinha?.qr_code || carteirinha?.codigo) && (
                 <View className='flex flex-row items-center justify-center'>
-                  <QRCode
+                  {carteirinha?.qr_code ? (
+                    <QRCode
                     size={180}
-                    logoSize={40}
-                    value={carteirinha?.codigo}
+                    value={String(carteirinha?.codigo_cliente)}
                     logoBackgroundColor='transparent'
                   />
+                  ) : (
+                    <QRCode
+                      size={180}
+                      value={String(carteirinha.codigo)}
+                      logoBackgroundColor='transparent'
+                    />
+                  )}
                 </View>
-              }
+              )}
               <View className='mt-4'>
                 <Text className='text-[#A5A5A5] text-center' style={{ fontFamily: 'Poppins_400Regular' }}>
                   Nome do usuário {'\n'}
@@ -121,14 +116,14 @@ export default function DisconTokenScreen() {
               </View>
               <View className='mt-4'>
                 <Text className='text-[#A5A5A5] text-center' style={{ fontFamily: 'Poppins_400Regular' }}>
-                  Código do Cliente {'\n'}
+                  ID do Usuário {'\n'}
                   <Text className='text-black text-lg'>{carteirinha?.codigo_cliente}</Text>
                 </Text>
               </View>
             </View>
           </View>
         }
-        {!associado || associado === '-' &&
+        {!loading && !associado && (
           <View>
             <H1
               align={"center"}
@@ -138,7 +133,7 @@ export default function DisconTokenScreen() {
             <View className='h-4'></View>
             <FilledButton title='Quero ser um cliente discontoken' onPress={() => Linking.openURL('https://discontapp.info/')} />
           </View>
-        }
+        )}
       </KeyboardAvoidingView>
     </MainLayoutAutenticado>
   );

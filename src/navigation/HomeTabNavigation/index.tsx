@@ -11,6 +11,7 @@ import HomeFiltradaScreen from '../../screens/Dashboard/HomeFiltradaScreen'
 import OfertaDetalhesScreen from '../../screens/Dashboard/OfertaDetalhesScreen'
 import ClienteOfertaDetalheHistoricoScreen from '../../screens/Dashboard/ClienteNavigation/ClienteOfertaDetalheHistoricoScreen'
 import DiscotokenListagemScreen from '../../screens/Dashboard/DiscotokenListagemScreen'
+import DiscotokenQrCodeScreen from '../../screens/Dashboard/DiscotokenQrCodeScreen'
 import AcompanhamentoAfiliadoScreen from '@screens/Dashboard/Afiliados/AcompanhamentoAfiliadoScreen'
 import CadastroAfiliadoScreen from '@screens/Dashboard/Afiliados/CadastroAfiliadoScreen'
 
@@ -67,6 +68,7 @@ export default function HomeTabNavigation() {
       <Tab.Screen name="Perfil" options={{ tabBarItemStyle: { display: 'none' } }} component={PerfilScreen} />
       <Tab.Screen name="Categorias" options={{ headerShown: true, tabBarItemStyle: { display: 'none' } }} component={HomeFiltradaScreen} />
       <Tab.Screen name="Discontoken" options={{ headerShown: true, tabBarItemStyle: { display: 'none' } }} component={DiscotokenListagemScreen} />
+      <Tab.Screen name="DiscotokenQrCodeScreen" options={{ headerShown: true, headerTitle: 'QR Code Discontoken', tabBarItemStyle: { display: 'none' } }} component={DiscotokenQrCodeScreen} />
       <Tab.Screen name="Favoritos" options={{ headerTitle: 'Home 1' }} component={FavoritosScreen} />
       <Tab.Screen name="Meus Cupons" options={{ headerTitle: 'Home 1' }} component={UtilizadosScreen} />
       <Tab.Screen name="DetalhesHistorico" options={{ headerShown: false, tabBarItemStyle: { display: 'none' } }} component={ClienteOfertaDetalheHistoricoScreen} />

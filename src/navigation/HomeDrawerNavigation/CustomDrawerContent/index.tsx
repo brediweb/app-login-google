@@ -118,7 +118,7 @@ export function CustomDrawerContent(props: any) {
               <View className=' rounded-2xl' style={{ backgroundColor: colors.secondary80 }}>
                 <MenuItem
                   titulo='Discontoken'
-                  onPress={() => navigate('DisconTokenScreen')}
+                  onPress={() => { drawerNavigation.closeDrawer(); drawerNavigation.navigate('DisconTokenScreen') }}
                   icon={require('../../../../assets/img/icons/star-discontoken.png')}
                 />
               </View>

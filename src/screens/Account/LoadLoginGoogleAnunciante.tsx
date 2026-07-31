@@ -164,7 +164,7 @@ export default function LoadLoginGoogleAnunciante() {
             title='Trocar perfil'
             backgroundColor={colors.secondary60}
           />
-          {Platform.OS !== 'ios' && (
+          {/* {Platform.OS !== 'ios' && (
             <>
               <View className="mt-2"></View>
               <FilledButton
@@ -173,7 +173,7 @@ export default function LoadLoginGoogleAnunciante() {
                 backgroundColor={colors.primary10}
               />
             </>
-          )}
+          )} */}
         </View>
         <View className='absolute bottom-0 right-0'>
           <Caption fontWeight={'bold'}>{versionName ?? ''}</Caption>
