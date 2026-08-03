@@ -92,8 +92,8 @@ android {
         applicationId 'br.bredi.discountapp'
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 3850
-        versionName "1.8.9"
+        versionCode 3851
+        versionName "1.9.1"
 
         buildConfigField "String", "REACT_NATIVE_RELEASE_LEVEL", "\"${findProperty('reactNativeReleaseLevel') ?: 'stable'}\""
     }

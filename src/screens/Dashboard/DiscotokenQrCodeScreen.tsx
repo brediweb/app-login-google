@@ -41,7 +41,7 @@ export default function DiscotokenQrCodeScreen() {
     const idUsuario = route?.params?.usuarioCliente
 
     const idsValidos = idAnunciante != null && idUsuario != null
-    const valorQrCode = `${idAnunciante},${idUsuario}`
+    const valorQrCode = `${idUsuario}`
 
     return (
         <MainLayoutAutenticado marginHorizontal={16}>
@@ -57,27 +57,12 @@ export default function DiscotokenQrCodeScreen() {
                         <View style={styles.idsBox}>
                             <View style={styles.idColuna}>
                                 <Caption fontSize={12} color={colors.neutralvariant60}>
-                                    ID do Anunciante
-                                </Caption>
-                                <Text style={styles.idValor}>{String(idAnunciante)}</Text>
-                            </View>
-                            <View style={styles.idDivisor} />
-                            <View style={styles.idColuna}>
-                                <Caption fontSize={12} color={colors.neutralvariant60}>
-                                    ID do Usuário
+                                    ID do Usuário para validar manualmente
                                 </Caption>
                                 <Text style={styles.idValor}>{String(idUsuario)}</Text>
                             </View>
                         </View>
 
-                        <View style={styles.codigoBox}>
-                            <Caption fontSize={12} color={colors.neutralvariant60}>
-                                Código para validação manual
-                            </Caption>
-                            <Text style={styles.codigoValor} selectable>
-                                {valorQrCode}
-                            </Text>
-                        </View>
                     </>
                 ) : (
                     <View style={styles.avisoBox}>

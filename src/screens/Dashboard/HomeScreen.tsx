@@ -11,7 +11,7 @@ import ButtonOutline from '../../components/buttons/ButtonOutline'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import MainLayoutAutenticado from '../../components/layout/MainLayoutAutenticado'
 import { FlatList, RefreshControl, ScrollView, Text, TouchableOpacity, View } from 'react-native'
-import { SafeAreaView } from 'react-native-safe-area-context'
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { temDiscontokenNoPerfil } from '../../utils/discontokenPerfil'
 
 interface DadosPerfil {
@@ -30,6 +30,7 @@ interface DadosPerfil {
 
 export default function HomeScreen() {
   const isFocused = useIsFocused()
+  const insets = useSafeAreaInsets()
   const { navigate } = useNavigate()
   const [primeiroNome, setPrimeiroNome] = useState('')
   const [listaprodutos, setProdutos] = useState([])
@@ -89,7 +90,7 @@ export default function HomeScreen() {
     setIsRefreshing(false)
   }
 
-  /** L√™ `dados-perfil` + `infos-user` para atualizar chip Discontoken sem esperar a API. */
+  /** Lù `dados-perfil` + `infos-user` para atualizar chip Discontoken sem esperar a API. */
   async function aplicarDadosPerfilDoStorage() {
     try {
       const dp = await AsyncStorage.getItem('dados-perfil')
@@ -207,14 +208,14 @@ export default function HomeScreen() {
 
   return (
     <MainLayoutAutenticado notScroll={true} loading={isRefreshing}>
-      <SafeAreaView style={{ marginTop: 72 }}>
+      <SafeAreaView style={{ flex: 1, marginTop: 72 }} edges={['left', 'right']}>
 
         <ScrollView
           horizontal
           showsVerticalScrollIndicator={false}
           showsHorizontalScrollIndicator={false}
           className="w-full mb-2"
-          style={{ marginTop: 4 }}
+          style={{ marginTop: 4, flexGrow: 0 }}
           contentContainerStyle={{ alignItems: 'center', paddingRight: 8, paddingVertical: 4 }}
         >
           {temDiscontokenNoPerfil(dadosPerfil) && (
@@ -237,7 +238,7 @@ export default function HomeScreen() {
         </ScrollView>
 
         <View className="flex-row">
-          <Text className="text-[24px] font-semibold text-[#000] mb-3">Boas-vindas, {primeiroNome ?? ''} üéâ</Text>
+          <Text className="text-[24px] font-semibold text-[#000] mb-3">Boas-vindas, {primeiroNome ?? ''} ??</Text>
         </View>
 
         {estadoSelecionado && cidadeSelecionada &&
@@ -245,7 +246,7 @@ export default function HomeScreen() {
             onPress={() => navigate('FiltroCidadeScreen')}
             className='ml-2 mt-2 px-4 py-3 rounded-2xl bg-[#E6F3FF] border border-[#1E90FF] flex-row items-center'
           >
-            <Text className="text-[18px] mr-2">üìç</Text>
+            <Text className="text-[18px] mr-2">??</Text>
             <View>
               <Caption fontSize={12} fontWeight={'400'} color="#1E4B79">
                 Ofertas filtradas para
@@ -259,6 +260,7 @@ export default function HomeScreen() {
         {listaprodutos.length >= 1 &&
           <FlatList
             data={listaprodutos}
+            className="flex-1"
             renderItem={renderItem}
             refreshControl={
               <RefreshControl
@@ -267,10 +269,11 @@ export default function HomeScreen() {
               />
             }
             showsVerticalScrollIndicator={false}
+            contentContainerStyle={{ paddingBottom: insets.bottom + 96 }}
           />}
         {!isRefreshing && listaprodutos.length <= 0 &&
           <View className='w-full items-center'>
-            <CardNotFound titulo='N√£o encontramos cupons no momento para voc√™' />
+            <CardNotFound titulo='Nùo encontramos cupons no momento para vocù' />
             {estadoSelecionado && cidadeSelecionada && (
               <View className='mt-3 w-full px-8'>
                 <ButtonOutline title='Limpar filtro de cidade e estado' onPress={limparFiltroCidadeEstado} />
