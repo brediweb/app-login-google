@@ -348,7 +348,6 @@ export default function CadastroAfiliadoScreen() {
         chave_pix: (tipoChavePix === 'cpf' || tipoChavePix === 'telefone') ? chavePix.replace(/\D/g, '') : chavePix.trim(),
         aceite_termos: aceiteTermos,
       }
-      console.log('dadosAfiliado: ', dadosAfiliado)
 
       // Verificar se há token de autenticação
       const jsonValue = await AsyncStorage.getItem('infos-user')

@@ -19,7 +19,7 @@ export default function SplashScreen() {
       }
     } catch (error: any) {
       navigate('LoginScreen')
-      console.log('Error Primeiro Acesso:', error)
+      console.error('Error Primeiro Acesso:', error)
     }
   }
 

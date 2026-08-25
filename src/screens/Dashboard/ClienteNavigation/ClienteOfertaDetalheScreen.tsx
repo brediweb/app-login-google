@@ -50,7 +50,7 @@ export default function ClienteOfertaDetalheScreen({ route }: { route?: any }) {
         })
         setOferta(response.data.results)
       } catch (error: any) {
-        console.log(error)
+        console.error(error)
       }
     }
     setLoading(false)
@@ -66,7 +66,7 @@ export default function ClienteOfertaDetalheScreen({ route }: { route?: any }) {
 
       await Share.share(options);
     } catch (error: any) {
-      console.log('Erro ao compartilhar:', error.message)
+      console.error('Erro ao compartilhar:', error.message)
     }
   }
 

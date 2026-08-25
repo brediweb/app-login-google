@@ -218,7 +218,6 @@ export default function CardProduto(
         const response = await api.post(`/gera-cupom`, {
           idOferta: id_oferta
         }, { headers })
-        console.log(response.data);
 
         handleOpenModal()
       } catch (error: any) {
@@ -313,7 +312,6 @@ export default function CardProduto(
       try {
         const response = await api.get(`/horarios-funcionamento?user_id=${id_anunciante}`);
         // A API retorna horarios como um array, então pegamos o primeiro elemento     
-        console.log(nome_empresa, 'id_anunciante', response.data);
 
         if (response.data.results?.horarios && Array.isArray(response.data.results.horarios) && response.data.results.horarios.length > 0) {
           setListaHorarios(response.data.results.horarios[0])

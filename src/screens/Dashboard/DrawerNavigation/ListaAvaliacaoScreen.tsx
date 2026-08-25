@@ -30,7 +30,7 @@ export default function ListaAvaliacaoScreen({ route }: any) {
       const response = await api.get(`/avaliacoes/${id}`)
       setListaAvaliacoes(response.data.results)
     } catch (error: any) {
-      console.log('Erro Listagem de Avaliações: ', error.response.data)
+      console.error('Erro Listagem de Avaliações: ', error.response.data)
     }
   }
 

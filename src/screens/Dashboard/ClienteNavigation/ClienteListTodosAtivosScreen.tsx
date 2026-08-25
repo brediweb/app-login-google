@@ -31,7 +31,7 @@ export default function ClienteListTodosAtivosScreen({ route }: { route?: any })
         })
         setOferta(response.data.results)
       } catch (error: any) {
-        console.log(error)
+        console.error(error)
       }
     }
     setLoading(false)
@@ -57,7 +57,7 @@ export default function ClienteListTodosAtivosScreen({ route }: { route?: any })
         })
         getOfertas()
       } catch (error: any) {
-        console.log('ERROR Status Oferta: ', error.response.data);
+        console.error('ERROR Status Oferta: ', error.response.data);
 
       }
     }

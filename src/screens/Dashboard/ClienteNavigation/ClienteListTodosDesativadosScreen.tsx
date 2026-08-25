@@ -27,7 +27,7 @@ export default function ClienteListTodosDesativadosScreen({ route }: { route?: a
         const response = await api.get(`/meus-cupoms/anunciante/inativo`, { headers })
         setOferta(response.data.results)
       } catch (error: any) {
-        console.log('ERROR GET Ofertas Inativas: ', error)
+        console.error('ERROR GET Ofertas Inativas: ', error)
       }
     }
     setLoading(false)

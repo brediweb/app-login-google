@@ -24,7 +24,7 @@ export default function ClienteCupomSucessoScreen(props: any) {
 
       await Share.share(options);
     } catch (error: any) {
-      console.log('Erro ao compartilhar:', error.message)
+      console.error('Erro ao compartilhar:', error.message)
     }
   }
 

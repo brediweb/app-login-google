@@ -47,7 +47,7 @@ export default function LoginAnuncianteScreen() {
       }
       navigate('HomeDrawerNavigation')
     } catch (error) {
-      console.log(error)
+      console.error(error)
     }
   }
 
@@ -99,7 +99,7 @@ export default function LoginAnuncianteScreen() {
         setEmail(storageEmail)
       }
     } catch (error: any) {
-      console.log(error)
+      console.error(error)
     }
     setLoading(false)
   }
@@ -109,25 +109,18 @@ export default function LoginAnuncianteScreen() {
     // Método 1: Via parâmetros da rota (React Navigation)
     const routeParams = route.params as { token?: string } | undefined
     if (routeParams?.token) {
-      console.log('token', routeParams.token)
       return
     }
 
     // Método 2: Via Linking API (para quando o app já está aberto)
     const handleDeepLink = async (event: { url: string }) => {
-      const { queryParams } = Linking.parse(event.url)
-      if (queryParams?.token) {
-        console.log('token', queryParams.token)
-      }
+      Linking.parse(event.url)
     }
 
     // Verifica se há um deep link inicial quando o app abre
     Linking.getInitialURL().then((url) => {
       if (url) {
-        const { queryParams } = Linking.parse(url)
-        if (queryParams?.token) {
-          console.log('token', queryParams.token)
-        }
+        Linking.parse(url)
       }
     })
 

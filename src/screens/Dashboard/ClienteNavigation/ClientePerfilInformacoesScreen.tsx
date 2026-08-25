@@ -44,7 +44,7 @@ export default function ClientePerfilInformacoesScreen() {
         handleCPFMask(response.data.results.cpf_represetante);
         setCategoriaPerfil(response.data.results.perfil_id);
       } catch (error: any) {
-        console.log('Error GET Perfil: ', error.response.data);
+        console.error('Error GET Perfil: ', error.response.data);
       }
     }
   }
@@ -92,7 +92,7 @@ export default function ClientePerfilInformacoesScreen() {
           text1:
             error.response.data.erro ?? 'Ocorreu um erro, tente novamente!',
         });
-        console.log(error);
+        console.error(error);
       }
     }
     setLoading(false);

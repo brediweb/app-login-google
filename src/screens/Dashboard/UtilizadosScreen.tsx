@@ -40,7 +40,7 @@ export default function UtilizadosScreen() {
         const response = await api.get(`/meus-cupoms`, { headers })
         setListaCupons(response.data.results)
       } catch (error: any) {
-        console.log(error)
+        console.error(error)
       }
     }
     setLoading(false)

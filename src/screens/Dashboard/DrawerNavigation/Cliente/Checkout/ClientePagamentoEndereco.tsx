@@ -87,7 +87,6 @@ export default function ClientePagamentoEndereco() {
 
   const handleCep = () => {
     const newCep = cep.replace(/\D/g, '')
-    console.log('CEP:', newCep);
 
     getCEP(newCep)
   }
@@ -101,7 +100,7 @@ export default function ClientePagamentoEndereco() {
       setUf(response.data.state)
       setEstadoSelecionado(response.data.state)
     } catch (error: any) {
-      console.log('Error GET CEP V2:', error)
+      console.error('Error GET CEP V2:', error)
       // Tentativa caso a primeira API V2 falhar
       try {
         const response = await axios.get(`https://brasilapi.com.br/api/cep/v1/${novoCep}`)
@@ -110,7 +109,7 @@ export default function ClientePagamentoEndereco() {
         setUf(response.data.state)
         setEstadoSelecionado(response.data.state)
       } catch (errorV1: any) {
-        console.log('Error GET CEP V1:', errorV1)
+        console.error('Error GET CEP V1:', errorV1)
         Toast.show({
           type: 'error',
           text1: 'CEP não encontrado',
@@ -183,7 +182,7 @@ export default function ClientePagamentoEndereco() {
         const response = await api.get(`/perfil/pessoa-juridica/${newJson.id}`)
         setLogradouro(response.data.results.endereco)
       } catch (error: any) {
-        console.log(error.response.data)
+        console.error(error.response.data)
       }
     }
   }
@@ -193,7 +192,7 @@ export default function ClientePagamentoEndereco() {
       const response = await api_ibge.get(`/localidades/estados`)
       setListaEstados(response.data)
     } catch (error: any) {
-      console.log('ERRO', error)
+      console.error('ERRO', error)
     }
   }
 
@@ -202,7 +201,7 @@ export default function ClientePagamentoEndereco() {
       const response = await api_ibge.get(`/localidades/estados/${uf}/municipios`)
       setListaCidades(response.data)
     } catch (error: any) {
-      console.log('ERRO', error)
+      console.error('ERRO', error)
     }
   }
 

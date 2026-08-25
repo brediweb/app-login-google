@@ -69,7 +69,6 @@ export default function FormPerfilScreen({ route }: { route: any }) {
               type: 'success',
               text1: 'Cadastro realizado !',
             })
-            // console.log('Cadastrado:', response.data);
 
             setTelefoneDigitado(infoForm.telefone)
             navigate('ValidaCodigoScreen')
@@ -102,7 +101,6 @@ export default function FormPerfilScreen({ route }: { route: any }) {
             type: 'success',
             text1: 'Cadastro realizado !',
           })
-          // console.log('Cadastrado:', response.data);
 
           setTelefoneDigitado(infoForm.telefone)
           navigate('ValidaCodigoScreen')

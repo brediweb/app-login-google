@@ -68,7 +68,6 @@ export default function LoginScreen() {
       password: storagePassword,
       role: "Anunciante",
     }
-    console.log(formdata);
 
     if (!storageEmail || !storagePassword) {
       setLoading(false)
@@ -127,7 +126,7 @@ export default function LoginScreen() {
         type: 'error',
         text1: error.response.data.message ?? 'Ocorreu um erro, tente novamente!',
       })
-      console.log(error.response.data)
+      console.error(error.response.data)
     }
     setLoading(false)
   }

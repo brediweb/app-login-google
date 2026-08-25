@@ -120,7 +120,7 @@ export default function CameraScreen() {
         })
         setModalVisible(true)
       } catch (error: any) {
-        console.log(error.response.data)
+        console.error(error.response.data)
         Toast.show({
           type: 'error',
           text1: error.response.data.message ?? 'Ocorreu um erro, tente novamente!',

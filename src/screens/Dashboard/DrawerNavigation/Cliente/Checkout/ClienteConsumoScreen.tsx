@@ -62,7 +62,7 @@ export default function ClienteConsumoScreen() {
         setDadosConsumo(response.data.results)
       }
     } catch (error: any) {
-      console.log('ERROR GET - CONSUMO', error.response.data)
+      console.error('ERROR GET - CONSUMO', error.response.data)
     }
     setLoading(false)
   }

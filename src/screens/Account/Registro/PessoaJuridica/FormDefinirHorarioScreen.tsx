@@ -202,7 +202,7 @@ export default function FormDefinirHorarioScreen({ route }: { route: any }) {
         postLogin(storageEmail)
       }
     } catch (error: any) {
-      console.log('Error Storage: ', error)
+      console.error('Error Storage: ', error)
     }
     setLoading(false)
   }

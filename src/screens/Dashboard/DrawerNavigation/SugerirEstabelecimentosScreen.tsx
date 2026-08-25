@@ -67,7 +67,7 @@ export default function SugerirEstabelecimentosScreen() {
         })
       }
     } catch (error: any) {
-      console.log(error.response.data)
+      console.error(error.response.data)
       Toast.show({
         type: 'error',
         text1: error.response.data.erro ?? 'Ocorreu um erro, tente novamente',

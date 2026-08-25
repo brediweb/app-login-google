@@ -38,7 +38,7 @@ export default function FiltroOfertasReaisScreen() {
         setTotalCupons(response.data.results.length)
 
       } catch (error: any) {
-        console.log('ERROR - Filtro Melhores Ofertas: ', error.response.data)
+        console.error('ERROR - Filtro Melhores Ofertas: ', error.response.data)
       }
       setIsRefreshing(false)
     }

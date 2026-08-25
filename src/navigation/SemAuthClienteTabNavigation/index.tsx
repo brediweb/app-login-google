@@ -53,7 +53,6 @@ export default function SemAuthClienteTabNavigation() {
             marginTop: 12,
           },
           tabBarOnPress: ({ navigation, route }: any) => {
-            console.log(route)
           }
         })}
       >

@@ -27,7 +27,7 @@ export default function FiltroCuponVigenteScreen() {
         const response = await api.get(`/cupons`, { headers })
         setProdutos(response.data.results)
       } catch (error: any) {
-        console.log(error)
+        console.error(error)
       }
     }
     setIsRefreshing(false)
@@ -39,7 +39,7 @@ export default function FiltroCuponVigenteScreen() {
       const response = await api.get(`/categorias`)
       setCategorias(response.data.results)
     } catch (error: any) {
-      console.log(error)
+      console.error(error)
     }
     setIsRefreshing(false)
   }

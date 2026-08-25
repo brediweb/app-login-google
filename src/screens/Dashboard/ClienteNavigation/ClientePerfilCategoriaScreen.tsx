@@ -100,21 +100,19 @@ export default function ClientePerfilCategoriaScreen() {
     const headers = { Authorization: `Bearer ${newJson.token}` }
     try {
       const resCadastro = await api.get('/categorias/cadastro', { headers })
-      console.log('Resposta da API de categorias (cadastro)', resCadastro.data)
       let list = normalizarListaCategoriasApi(resCadastro.data)
       if (list.length === 0) {
         const resHome = await api.get('/categorias', { headers })
-        console.log('Resposta da API de categorias (home)', resHome.data)
         list = normalizarListaCategoriasApi(resHome.data)
       }
       setListaCategorias(list)
     } catch (error: any) {
-      console.log('Erro ao buscar categorias (cadastro), tentando /categorias', error.response?.data)
+      console.error('Erro ao buscar categorias (cadastro), tentando /categorias', error.response?.data)
       try {
         const response = await api.get('/categorias', { headers })
         setListaCategorias(normalizarListaCategoriasApi(response.data))
       } catch (e2: any) {
-        console.log('Erro ao buscar /categorias', e2.response?.data)
+        console.error('Erro ao buscar /categorias', e2.response?.data)
         setListaCategorias([])
       }
     }
@@ -133,7 +131,7 @@ export default function ClientePerfilCategoriaScreen() {
       setSelectedOptions(idsSelecionados)
       setOriginalSelectedOptions(idsSelecionados)
     } catch (error: any) {
-      console.log(
+      console.error(
         'Erro ao buscar categorias selecionadas',
         error.response?.data || error.message,
       )
@@ -155,7 +153,6 @@ export default function ClientePerfilCategoriaScreen() {
           { categorias: selectedOptions },
           { headers }
         );
-        console.log('Categorias Enviada', selectedOptions);
         navigate('ClientePerfilScreen')
         Toast.show({
           type: 'success',
@@ -165,7 +162,7 @@ export default function ClientePerfilCategoriaScreen() {
         getPerfil();
         getCategoriasSelecionadas();
       } catch (error: any) {
-        console.log('ERROR POST Atualizar Categorias', error.response.data);
+        console.error('ERROR POST Atualizar Categorias', error.response.data);
       }
     }
   }
@@ -198,7 +195,7 @@ export default function ClientePerfilCategoriaScreen() {
         // setSelectedOptions(idsSelecionados);
         // setOriginalSelectedOptions(idsSelecionados);
       } catch (error: any) {
-        console.log('Error GET Perfil: ', error.response.data);
+        console.error('Error GET Perfil: ', error.response.data);
       }
     }
   }

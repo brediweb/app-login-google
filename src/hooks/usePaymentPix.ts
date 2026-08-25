@@ -25,11 +25,11 @@ export function usePaymentPix() {
             navigate('ClienteSucessoPagamentoPixScreen');
           }
         } catch (error: any) {
-          console.log(error.response.data);
+          console.error(error.response.data);
         }
       }
     } catch (error) {
-      console.log(error);
+      console.error(error);
     }
   }
 

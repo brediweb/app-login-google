@@ -19,7 +19,7 @@ export default function DocumentosScreen() {
       const response = await api.get(`/documentos`)
       setDocumentos(response.data.results)
     } catch (error: any) {
-      console.log(error)
+      console.error(error)
     }
     setLoading(false)
   }

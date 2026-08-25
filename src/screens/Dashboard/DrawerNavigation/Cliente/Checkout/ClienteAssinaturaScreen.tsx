@@ -96,13 +96,12 @@ export default function ClienteAssinaturaScreen() {
           headers,
           data: formdata
         })
-        console.log(response.data);
 
       }
     } catch (error: any) {
       setError(true)
       Alert.alert('Ops', 'Ocorreu algum erro inesperado')
-      console.log('ERROR GET - Assinatura Ativa', error.response.data)
+      console.error('ERROR GET - Assinatura Ativa', error.response.data)
     }
     setLoading(false)
   }

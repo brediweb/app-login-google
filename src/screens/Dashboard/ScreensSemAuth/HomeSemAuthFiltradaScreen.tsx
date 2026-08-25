@@ -49,7 +49,7 @@ export default function HomeSemAuthFiltradaScreen(route: any) {
       const categoriasComCupom = todasCategorias.filter((c: any) => idsComCupons.has(c.id))
       setCategorias(categoriasComCupom)
     } catch (error: any) {
-      console.log('Error Listar Categorias: ', error)
+      console.error('Error Listar Categorias: ', error)
     }
   }
 

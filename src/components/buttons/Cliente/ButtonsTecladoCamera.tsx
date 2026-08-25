@@ -32,7 +32,6 @@ export default function ButtonsTecladoCamera() {
   const [cameraVisible, setCameraVisible] = useState(false)
   const [cameraPostion, setCameraPosition] = useState<CameraPosition>('back')
   const device = cameraPostion === 'front' ? devices.front : devices.back
-  console.log(device);
 
   // if (device == null) return <Loading />
 
@@ -65,7 +64,7 @@ export default function ButtonsTecladoCamera() {
         setCodigo('')
         setCodigoCliente('')
       } catch (error: any) {
-        console.log(error.response.data)
+        console.error(error.response.data)
         Alert.alert('Erro', error.response.data.message ?? 'Revise o código e tente novamente!')
       }
     }

@@ -28,7 +28,7 @@ export default function OfertaDetalhesGeraCupomScreen(props: any) {
         const response = await api.get(`/cupons/${id_oferta}`, { headers })
         setListaProdutos(response.data.results)
       } catch (error: any) {
-        console.log('ERRO Detalhe Oferta:', error.response.data)
+        console.error('ERRO Detalhe Oferta:', error.response.data)
       }
       setLoading(false)
     }

@@ -40,7 +40,6 @@ export default function DisconTokenScreen() {
       const headers = {
         Authorization: `Bearer ${newJson.token}`,
       }
-      console.log(headers);
       try {
         const response = await api.get(`/carteirinha-discotoken`, { headers })
         setCarteirinha(response.data.results)

@@ -33,7 +33,7 @@ export default function CustomHeader(props: any) {
         setTipoUser(responseParse.tipo_usuario);
       }
     } catch (error: any) {
-      console.log(error);
+      console.error(error);
     }
   }
 
@@ -48,7 +48,7 @@ export default function CustomHeader(props: any) {
         const response = await api.get(`/notificacoes`, { headers })
         setListaNotificacao(response.data.results)
       } catch (error: any) {
-        console.log('ERRO GET Notificações: ', error)
+        console.error('ERRO GET Notificações: ', error)
       }
     }
   }

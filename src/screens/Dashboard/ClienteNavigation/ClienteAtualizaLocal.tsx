@@ -98,7 +98,7 @@ export default function ClienteAtualizaLocal() {
           type: 'error',
           text1: 'Ocorreu algum erro, tente novamente!',
         })
-        console.log("Error: ", error.response.data)
+        console.error("Error: ", error.response.data)
       }
     }
     setLoading(false)
@@ -120,7 +120,7 @@ export default function ClienteAtualizaLocal() {
           longitude: longitudeFormatada
         })
       } catch (error: any) {
-        console.log('Erro detalhes perfil(Localização): ', error.response.data)
+        console.error('Erro detalhes perfil(Localização): ', error.response.data)
       }
     }
     setLoading(false)
@@ -153,15 +153,13 @@ export default function ClienteAtualizaLocal() {
 
   async function getVerifica() {
     const { granted } = await requestForegroundPermissionsAsync()
-    console.log('Verifica:', granted)
   }
 
   async function getPermissionIOS() {
     try {
       const { granted } = await requestForegroundPermissionsAsync()
-      console.log('Permissão', granted)
     } catch (error: any) {
-      console.log('ERRO: ', error);
+      console.error('ERRO: ', error);
     }
   }
 
@@ -175,10 +173,9 @@ export default function ClienteAtualizaLocal() {
         } else {
           setPermission(false)
         }
-        console.log('Permissão', granted);
       }).catch(error => {
-        console.log('Erro', error);
-      }) : console.log('Plataforma não é android');
+        console.error('Erro', error);
+      }) : null;
 
   }
 

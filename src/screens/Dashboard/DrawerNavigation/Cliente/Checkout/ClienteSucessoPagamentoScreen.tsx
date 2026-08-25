@@ -63,7 +63,6 @@ export default function ClienteSucessoPagamentoScreen() {
           ]
         }
 
-        console.log(formData)
         const response = await api.post(`/pagamento/assinatura`, formData, { headers })
         setSucesso(true)
       } catch (error: any) {
@@ -101,8 +100,6 @@ export default function ClienteSucessoPagamentoScreen() {
           plano_id: dadosPagamento.id_pacote
         }
 
-
-        console.log(formData)
         const response = await api.post(`/pagamento/avulso/cartao`, formData, { headers })
         setSucesso(true)
       } catch (error: any) {

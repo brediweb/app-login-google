@@ -38,7 +38,6 @@ export default function ConfiguracoesScreen() {
           {},
           { headers }
         );
-        console.log(response.data);
         Toast.show({ type: 'success', text1: 'Conta excluída com sucesso!' });
         AsyncStorage.setItem('infos-user', '');
         setUsuarioLogado(false);
@@ -49,7 +48,7 @@ export default function ConfiguracoesScreen() {
           })
         );
       } catch (error: any) {
-        console.log('ERRO POST Deletar Conta: ', error.request);
+        console.error('ERRO POST Deletar Conta: ', error.request);
       }
     }
     setLoading(false);

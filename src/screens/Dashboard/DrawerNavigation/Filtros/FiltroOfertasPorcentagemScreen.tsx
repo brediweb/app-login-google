@@ -35,7 +35,6 @@ export default function FiltroOfertasPorcentagemScreen() {
         })
         setCuponsPorcentagem(response.data.results)
         setTotalCupons(response.data.results.length)
-        console.log(response.data.results[0].anunciante_id);
 
       } catch (error: any) {
         console.error('ERROR - Filtro Melhores Ofertas: ', error.response.data)

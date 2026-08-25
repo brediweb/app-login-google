@@ -44,7 +44,7 @@ export default function FiltroLocalizacaoScreen() {
         const response = await api.get(`/listar/anunciantes`, { headers })
         setListaAnunciantes(response.data.results ?? [])
       } catch (error: any) {
-        console.log('Erro Lista Anunciantes: ', error)
+        console.error('Erro Lista Anunciantes: ', error)
         setErroCarregarLocais('Não foi possível carregar os estabelecimentos no mapa. Tente novamente.')
       }
     }
@@ -85,7 +85,7 @@ export default function FiltroLocalizacaoScreen() {
       )
       return granted === PermissionsAndroid.RESULTS.GRANTED
     } catch (error) {
-      console.log('Erro ao solicitar permissão Android', error)
+      console.error('Erro ao solicitar permissão Android', error)
       return false
     }
   }, [])

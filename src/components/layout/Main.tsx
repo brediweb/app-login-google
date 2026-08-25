@@ -33,7 +33,7 @@ export default function Main({ children }: { children: any }) {
         setToken(newJson.token)
       }
     } catch (error: any) {
-      console.log(error)
+      console.error(error)
       Toast.show({
         type: 'error',
         text1: 'Ocorreu um erro ao obter o token',
@@ -108,7 +108,6 @@ export default function Main({ children }: { children: any }) {
     //     setImagemEnvio(image)
     //   })
     //   .catch((error: any) => {
-    //     console.log(error)
     //     Alert.alert(error.message ? error.message : error)
     //   })
   }

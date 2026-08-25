@@ -117,7 +117,7 @@ export default function ClientePagamentoCartaoScreen() {
         handleCPFMask(data.cpf_represetante)
       }
     } catch (error: any) {
-      console.log("Pagamento Cartão - Dados usuário:", error);
+      console.error("Pagamento Cartão - Dados usuário:", error);
     }
   }
 

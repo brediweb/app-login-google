@@ -31,7 +31,6 @@ export default function PerfilScreen() {
       const newJson = JSON.parse(jsonValue)
       try {
         const response = await api.get(`/perfil/pessoa-fisica/${newJson.id}`)
-        console.log('response', response.data.results);
 
         setNomeCompleto(response.data.results.nome_completo)
         setEmail(response.data.results.email)

@@ -12,7 +12,6 @@ type UseStatusType = {
 export const useStatus = create<UseStatusType>((set) => ({
   statusType: { status: 'success' },
   setStatus(statusType) {
-    console.log('StatusType = ', statusType.status);
     set({ statusType });
   },
 }));

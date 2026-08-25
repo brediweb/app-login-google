@@ -45,7 +45,7 @@ export default function LoginClienteScreen() {
       }
       navigate('HomeDrawerNavigation')
     } catch (error) {
-      console.log(error)
+      console.error(error)
     }
   }
 
@@ -83,7 +83,7 @@ export default function LoginClienteScreen() {
         type: 'error',
         text1: error.response.data.message ?? 'Ocorreu um erro, tente novamente!',
       })
-      console.log(error.response.data)
+      console.error(error.response.data)
     }
     setLoading(false)
   }
@@ -96,7 +96,7 @@ export default function LoginClienteScreen() {
         setEmail(storageEmail)
       }
     } catch (error: any) {
-      console.log(error)
+      console.error(error)
     }
     setLoading(false)
   }
@@ -104,9 +104,6 @@ export default function LoginClienteScreen() {
 
   useEffect(() => {
     getEmail()
-    // OneSignal.User.getOnesignalId().then((id) => {
-    //   console.log('playerId', id)
-    // })
     OneSignal.User.pushSubscription.getIdAsync().then((subscriptionId) => {
       setSubscriptionId(subscriptionId ?? '')
     })

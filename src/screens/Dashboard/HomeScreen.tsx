@@ -84,7 +84,7 @@ export default function HomeScreen() {
       const raw = response.data?.results ?? response.data
       setCategorias(Array.isArray(raw) ? raw : [])
     } catch (error: any) {
-      console.log('ERROR Categorias: ', error?.response?.data)
+      console.error('ERROR Categorias: ', error?.response?.data)
       setCategorias([])
     }
     setIsRefreshing(false)

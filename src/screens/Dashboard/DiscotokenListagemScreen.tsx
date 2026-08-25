@@ -132,7 +132,7 @@ export default function DiscotokenListagemScreen() {
                 const response = await api.get(`/discotoken/anunciantes`, { headers })
                 setCupons(response.data.results.anunciantes)
             } catch (error: any) {
-                console.log('ERROR GET CUPONS ', error)
+                console.error('ERROR GET CUPONS ', error)
             }
         }
     }
@@ -159,7 +159,7 @@ export default function DiscotokenListagemScreen() {
                 setPermissaoLocal(false)
             }
         } catch (error: any) {
-            console.log('ERRO', error);
+            console.error('ERRO', error);
         }
     }
 

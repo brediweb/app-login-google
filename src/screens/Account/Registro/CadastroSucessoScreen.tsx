@@ -25,7 +25,7 @@ export default function CadastroSucessoScreen() {
         setEmailStorage(storageEmail)
       }
     } catch (error: any) {
-      console.log('Error Storage: ', error)
+      console.error('Error Storage: ', error)
     }
     setLoading(false)
   }
@@ -76,9 +76,6 @@ export default function CadastroSucessoScreen() {
 
   useEffect(() => {
     getEmail()
-    // OneSignal.User.getOnesignalId().then((id) => {
-    //   console.log('playerId', id)
-    // })
     OneSignal.User.pushSubscription.getIdAsync().then((subscriptionId) => {
       setSubscriptionId(subscriptionId ?? '')
     })

@@ -17,7 +17,7 @@ export default function FaqScreen() {
       const response = await api.get(`/faq`)
       setFaqs(response.data.results)
     } catch (error) {
-      console.log(error)
+      console.error(error)
     }
     setLoading(false)
   }

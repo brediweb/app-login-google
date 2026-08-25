@@ -147,7 +147,6 @@ export default function ClientePagamentoPixScreen() {
     const newJsonPerfil = JSON.parse(jsonPerfil)
 
     try {
-      console.log('newJsonPerfil', newJsonPerfil.id)
       const responseJuridico = (await api.get(
         `/perfil/pessoa-juridica/${newJsonPerfil.id}`,
       )) as any

@@ -36,7 +36,7 @@ export default function NotificacoesScreen() {
         const response = await api.get(`/notificacoes`, { headers })
         setListaNotificacao(response.data.results)
       } catch (error: any) {
-        console.log('ERRO GET Notificações: ', error)
+        console.error('ERRO GET Notificações: ', error)
       }
     }
     setLoading(false)
@@ -87,7 +87,7 @@ export default function NotificacoesScreen() {
 
               return dateB.getTime() - dateA.getTime()
             } catch (error) {
-              console.log('Erro ao ordenar notificações:', error)
+              console.error('Erro ao ordenar notificações:', error)
               return 0
             }
           })

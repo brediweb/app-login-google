@@ -30,7 +30,7 @@ export default function RecuperaSenhaScreen() {
       setEmail('')
       goBack()
     } catch (error: any) {
-      console.log('ERROR Recuperar Senha: ', error.response.data.message)
+      console.error('ERROR Recuperar Senha: ', error.response.data.message)
       Toast.show({
         type: 'error',
         visibilityTime: 10000,

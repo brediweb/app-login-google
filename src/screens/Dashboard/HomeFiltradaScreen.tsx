@@ -56,7 +56,7 @@ export default function HomeFiltradaScreen(route: any) {
       const response = await api.get(`/categorias`)
       setCategorias(response.data.results)
     } catch (error: any) {
-      console.log('Error Listar Categorias: ', error);
+      console.error('Error Listar Categorias: ', error);
     }
     setIsRefreshing(false);
   }

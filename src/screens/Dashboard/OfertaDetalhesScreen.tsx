@@ -59,7 +59,7 @@ export default function OfertaDetalhesScreen(props: any) {
         setIdOferta(String(lista[0].id ?? ofertaIdRoute))
       }
     } catch (error: any) {
-      console.log('ERROR GET Detalhe Oferta:', error?.response?.data ?? error)
+      console.error('ERROR GET Detalhe Oferta:', error?.response?.data ?? error)
     } finally {
       setLoading(false)
     }

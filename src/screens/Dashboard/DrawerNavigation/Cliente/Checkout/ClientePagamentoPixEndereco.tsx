@@ -60,7 +60,7 @@ export default function ClientePagamentoPixEndereco() {
       setUf(response.data.state)
       setEstadoSelecionado(response.data.state)
     } catch (error: any) {
-      console.log('Error GET CEP', error)
+      console.error('Error GET CEP', error)
     }
   }
 
@@ -69,7 +69,7 @@ export default function ClientePagamentoPixEndereco() {
       const response = await api_ibge.get(`/localidades/estados`)
       setListaEstados(response.data)
     } catch (error: any) {
-      console.log('ERRO', error)
+      console.error('ERRO', error)
     }
   }
 
@@ -78,7 +78,7 @@ export default function ClientePagamentoPixEndereco() {
       const response = await api_ibge.get(`/localidades/estados/${uf}/municipios`)
       setListaCidades(response.data)
     } catch (error: any) {
-      console.log('ERRO', error)
+      console.error('ERRO', error)
     }
   }
 
@@ -101,7 +101,7 @@ export default function ClientePagamentoPixEndereco() {
       const response = await api.get(`/perfil/pessoa-juridica/${dadosUser.id}`)
       setLogradouro(response.data.results.endereco)
     } catch (error: any) {
-      console.log('ERRO Get Endereço Perfil: ', error)
+      console.error('ERRO Get Endereço Perfil: ', error)
     }
     setLoading(false)
   }

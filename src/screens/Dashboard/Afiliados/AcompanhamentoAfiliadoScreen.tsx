@@ -183,6 +183,12 @@ export default function AcompanhamentoAfiliadoScreen() {
               <Caption fontSize={14} color={colors.gray} margintop={8} align={'center'}>
                 Consulte o status e informações do seu cadastro
               </Caption>
+              <View className='w-full mt-4 px-4'>
+                <FilledButton
+                  title='Painel do Afiliado'
+                  onPress={() => Linking.openURL('https://www.discontapp.com.br/usuario/login')}
+                />
+              </View>
             </View>
 
             <View className='w-full mt-6'>

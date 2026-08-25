@@ -46,7 +46,7 @@ export default function HomeClienteScreen() {
         setPacoteGratis(response.data.results.pacote_disponivel)
         setStatusTesteGratis(response.data.results.pacote_disponivel)
       } catch (error: any) {
-        console.log('GET Pacote Gratuito: ', error.response.data.message)
+        console.error('GET Pacote Gratuito: ', error.response.data.message)
       }
       getDadosPerfil()
       setLoading(false)
@@ -67,7 +67,7 @@ export default function HomeClienteScreen() {
         const jsonValue = JSON.stringify(response.data.results)
         await AsyncStorage.setItem('dados-perfil', jsonValue)
       } catch (error: any) {
-        console.log('GET Dados Perfil(Anunciante): ', error.response.data.message)
+        console.error('GET Dados Perfil(Anunciante): ', error.response.data.message)
       }
     }
     setLoading(false)
@@ -103,10 +103,9 @@ export default function HomeClienteScreen() {
         }
         const response = await api.get(`/consumo`, { headers })
         setDadosConsumo(response.data.results)
-        console.log(response.data.results);
       }
     } catch (error: any) {
-      console.log('ERROR GET - CONSUMO', error.response.data)
+      console.error('ERROR GET - CONSUMO', error.response.data)
     }
     setLoading(false)
   }
@@ -124,7 +123,7 @@ export default function HomeClienteScreen() {
         setAssinaturasAtivas(response.data.results)
       }
     } catch (error: any) {
-      console.log('ERROR GET - CONSUMO', error.response.data)
+      console.error('ERROR GET - CONSUMO', error.response.data)
     }
     setLoading(false)
   }

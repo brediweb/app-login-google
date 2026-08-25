@@ -51,7 +51,7 @@ export default function FiltroAvaliacoesScreen() {
         setCuponsPorcentagem(response.data.results)
         setTotalCupons(response.data.results.length)
       } catch (error: any) {
-        console.log('ERROR - Filtro Melhores Avaliações: ', error.response.data)
+        console.error('ERROR - Filtro Melhores Avaliações: ', error.response.data)
       }
       setIsRefreshing(false)
     }

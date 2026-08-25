@@ -408,7 +408,7 @@ export default function FormPessoaFisicaScreen({
       );
       setListaCidades(response.data);
     } catch (error: any) {
-      console.log('ERRO', error);
+      console.error('ERRO', error);
     }
   }
 
@@ -438,7 +438,7 @@ export default function FormPessoaFisicaScreen({
       setRua(response.data.street);
       setBairro(response.data.neighborhood);
     } catch (error: any) {
-      console.log('Error GET CEP', error);
+      console.error('Error GET CEP', error);
     }
     setLoading(false)
   }

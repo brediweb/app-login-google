@@ -41,7 +41,7 @@ export default function ClientePerfilTrocarFotoScreen() {
 
         setLogomarca(response.data.results.logomarca);
       } catch (error: any) {
-        console.log('Error GET Perfil: ', error.response.data);
+        console.error('Error GET Perfil: ', error.response.data);
       }
     }
   }
@@ -236,7 +236,7 @@ export default function ClientePerfilTrocarFotoScreen() {
         });
         getPerfil();
       } catch (error: any) {
-        console.log('Erro ao atualizar logomarca:', error?.response?.data);
+        console.error('Erro ao atualizar logomarca:', error?.response?.data);
         Toast.show({
           type: 'error',
           text1: error?.response?.data?.message ?? 'Erro ao atualizar logomarca!',

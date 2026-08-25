@@ -26,7 +26,7 @@ export default function ContatosScreen() {
         })
       }
     } catch (error: any) {
-      console.log(error)
+      console.error(error)
       Toast.show({
         type: 'error',
         text1: error.response.data.erro ?? 'Ocorreu um erro interno!',

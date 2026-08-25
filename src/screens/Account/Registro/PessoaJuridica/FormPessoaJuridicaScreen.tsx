@@ -453,10 +453,6 @@ export default function FormPessoaJuridicaScreen({
       if (coordenadasValidas(lat, lng)) {
         setNovaLocalizacao({ latitude: lat, longitude: lng });
       }
-      // console.log('teste', {
-      //   latitude: parseFloat(response.data.location.coordinates.latitude),
-      //   longitude: parseFloat(response.data.location.coordinates.longitude),
-      // });
     } catch (error: any) {
       console.error('Error GET CEP', error);
       setEndereco('');
@@ -673,7 +669,6 @@ export default function FormPessoaJuridicaScreen({
     setLoading(true);
     try {
       const response = await api_cnpj.get(`/${novoCnpj}`);
-      // console.log(response.data);
       setNomeFantasia(response.data.estabelecimento.nome_fantasia ?? '');
       setNomeEmpressarial(response.data.razao_social);
       setCep(response.data.estabelecimento.cep);
@@ -730,7 +725,6 @@ export default function FormPessoaJuridicaScreen({
         distanceInterval: 1,
       },
       (location) => {
-        // console.log('LOCATION', location);
         setLocalizacao({
           latitude: location.coords.latitude,
           longitude: location.coords.longitude,
@@ -775,11 +769,6 @@ export default function FormPessoaJuridicaScreen({
     latitude: -1.445839,
     longitude: -48.487557,
   };
-
-  console.log('coordenadasMarcador', coordenadasMarcador);
-  console.log('novaLocalizacao', novaLocalizacao);
-  console.log('regiao', regiao);
-  console.log('localizacao', localizacao);
 
   return (
     <MainLayoutSecondary loading={loading}>
@@ -1141,7 +1130,6 @@ export default function FormPessoaJuridicaScreen({
                         ? PermissionsAndroid.request(
                           PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION
                         ).then((granted) => {
-                          // console.log('Permissão', granted);
                         })
                         : '';
                     }}
@@ -1193,7 +1181,6 @@ export default function FormPessoaJuridicaScreen({
                         ? PermissionsAndroid.request(
                           PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION
                         ).then((granted) => {
-                          // console.log('Permissão', granted);
                         })
                         : '';
                     }}
@@ -1303,7 +1290,6 @@ export default function FormPessoaJuridicaScreen({
                         ? PermissionsAndroid.request(
                           PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION
                         ).then((granted) => {
-                          // console.log('Permissão', granted);
                         })
                         : '';
                     }}
@@ -1355,7 +1341,6 @@ export default function FormPessoaJuridicaScreen({
                         ? PermissionsAndroid.request(
                           PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION
                         ).then((granted) => {
-                          // console.log('Permissão', granted);
                         })
                         : '';
                     }}

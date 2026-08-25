@@ -64,7 +64,7 @@ export default function HomeDrawerNavigation() {
           navigate('ClientePacotesScreen')
         }
       } catch (error: any) {
-        console.log(error)
+        console.error(error)
       }
     }
   }

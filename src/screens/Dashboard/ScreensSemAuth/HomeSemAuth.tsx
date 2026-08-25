@@ -62,7 +62,7 @@ export default function HomeSemAuth() {
       const response = await api.get(`/categorias`)
       setCategorias(response.data.results)
     } catch (error: any) {
-      console.log('ERROR Categorias: ', error.response.data)
+      console.error('ERROR Categorias: ', error.response.data)
     }
     setIsRefreshing(false)
   }

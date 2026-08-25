@@ -39,7 +39,7 @@ export default function ClientePacotesScreen() {
       const response = await api.get(`/pacotes`, { headers: headersPacotes })
       setListaPlanos(response.data.results ?? [])
     } catch (error: any) {
-      console.log('ERROR Lista Pacotes: ', error)
+      console.error('ERROR Lista Pacotes: ', error)
     }
     try {
       const response = await api.post(`/verifiaca-teste-gratis`, {}, {
@@ -48,7 +48,7 @@ export default function ClientePacotesScreen() {
       const disponivel = response.data.results?.pacote_disponivel
       setStatusTesteGratis(disponivel)
     } catch (error: any) {
-      console.log('ERROR Pacote Gratuito: ', error?.response?.data?.message)
+      console.error('ERROR Pacote Gratuito: ', error?.response?.data?.message)
     }
     if (pull) setRefreshing(false)
     else setLoading(false)

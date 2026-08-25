@@ -4,7 +4,7 @@ export const setToken = async (value: string) => {
   try {
     await AsyncStorage.setItem('token', value);
   } catch (e) {
-    console.log(e);
+    console.error(e);
   }
 };
 
@@ -15,6 +15,6 @@ export const getToken = async () => {
       return value;
     }
   } catch (e) {
-    console.log(e);
+    console.error(e);
   }
 };
