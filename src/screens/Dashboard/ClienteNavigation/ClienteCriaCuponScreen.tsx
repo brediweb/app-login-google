@@ -683,8 +683,11 @@ export default function ClienteCriaCuponScreen() {
 
       const novoValorVantagem = RemoveCaracteres({ text: valueVantagem });
 
-      const match = valorReais.match(/([\d,]+)/);
-      const resultReais = match ? match[0] : '';
+      // InputOutlinedMoney guarda dígitos em centavos; API espera vantagem_reais em reais
+      const digitsVantagemCentavos = (valorReais.match(/([\d,]+)/)?.[0] ?? '').replace(/\D/g, '');
+      const resultReais = digitsVantagemCentavos
+        ? (Number(digitsVantagemCentavos) / 100).toFixed(2)
+        : '';
 
       const matchItem = valorItem.match(/([\d,]+)/);
       let resultItem = matchItem ? matchItem[0].replace(/,/g, '') : '';
@@ -990,14 +993,13 @@ export default function ClienteCriaCuponScreen() {
                 />
               )}
               {tipoVantagem === 'Vantagem em Reais' && (
-                <InputOutlined
+                <InputOutlinedMoney
                   mt={12}
                   label="Vantagem em reais"
                   value={valorReais}
-                  keyboardType={'number-pad'}
+                  editable={false}
                   error={errorValueVantagem}
                   placeholder="Vantagem em reais (R$)"
-                  edicao={false}
                 />
               )}
               <InputOutlined

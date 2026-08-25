@@ -93,6 +93,7 @@ export default function CardProduto(
   const [cupomUsado, setCupomUsado] = useState(false)
   const [depoimentos, setDepoimentos] = useState<any[]>([])
 
+  /** Formata `valor` da API (centavos) para exibição em reais */
   function formatarReais(valor: string | number): string {
     if (typeof valor === 'number') {
       return valor.toLocaleString('pt-BR', {
@@ -110,11 +111,26 @@ export default function CardProduto(
     })
   }
 
+  /** Converte `valor` da API (centavos) para número em reais */
   function valorReaisNum(valor: string | number): number {
     const str = String(valor ?? '')
     const apenasNumeros = str.replace(/\D/g, '')
     if (apenasNumeros.length === 0) return 0
     return parseInt(apenasNumeros, 10) / 100
+  }
+
+  /** `vantagem_reais` da API já vem em reais (ex.: "10", "500.00") */
+  function parseVantagemReais(valor: string | number): number {
+    const str = String(valor ?? '').trim().replace(',', '.')
+    const num = parseFloat(str)
+    return Number.isNaN(num) ? 0 : num
+  }
+
+  function formatarVantagemReais(valor: string | number): string {
+    return parseVantagemReais(valor).toLocaleString('pt-BR', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    })
   }
 
   const handleOpenModal = () => {
@@ -642,7 +658,7 @@ export default function CardProduto(
           {vantagem_reais && vantagem_reais != '-' &&
             <View className="bg-[#FFB876]">
               <Text className="text-center text-[#9C5706] font-medium text-[16px] py-2 ">
-                R$ {formatarReais(vantagem_reais)} de desconto
+                R$ {formatarVantagemReais(vantagem_reais)} de desconto
               </Text>
             </View>
           }
@@ -671,7 +687,7 @@ export default function CardProduto(
             Por:{' '}
             <Text className="font-bold">
               {vantagem_reais != '-'
-                ? `R$ ${formatarReais(valorReaisNum(dados_gerais.valor) - valorReaisNum(vantagem_reais))}`
+                ? `R$ ${formatarReais(valorReaisNum(dados_gerais.valor) - parseVantagemReais(vantagem_reais))}`
                 : `R$ ${formatarReais(valorReaisNum(dados_gerais.valor) * (1 - (vantagem_porcentagem ?? 0) / 100))}`
               }
             </Text>

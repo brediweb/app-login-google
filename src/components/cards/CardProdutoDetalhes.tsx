@@ -62,10 +62,11 @@ export default function CardProdutoDetalhes({
     Toast.show({ type: 'success', text1: 'Código copiado!' })
   }
 
-  function formatarReais(valor: string): string {
-    const apenasNumeros = valor.replace(/\D/g, '')
-    if (apenasNumeros.length === 0) return valor
-    const num = parseInt(apenasNumeros, 10) / 100
+  /** `vantagem_reais` da API já vem em reais (ex.: "10", "500.00") */
+  function formatarVantagemReais(valor: string): string {
+    const str = String(valor ?? '').trim().replace(',', '.')
+    const num = parseFloat(str)
+    if (Number.isNaN(num)) return valor
     return num.toLocaleString('pt-BR', {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
@@ -113,7 +114,7 @@ export default function CardProdutoDetalhes({
             )}
             {temVantagemReais && (
               <Caption fontSize={18} fontWeight="700" color={colors.white}>
-                R$ {formatarReais(vantagem_reais)} de desconto
+                R$ {formatarVantagemReais(vantagem_reais)} de desconto
               </Caption>
             )}
           </View>
