@@ -42,6 +42,7 @@ import { useIsFocused } from '@react-navigation/native';
 import H2 from '@components/typography/H2';
 import H1 from '@components/typography/H1';
 import React from 'react';
+import { centavosDigitsParaReaisApi } from '../../../utils/cupomValores';
 
 export default function ClienteCriaCuponScreen() {
   const { navigate } = useNavigate();
@@ -684,10 +685,7 @@ export default function ClienteCriaCuponScreen() {
       const novoValorVantagem = RemoveCaracteres({ text: valueVantagem });
 
       // InputOutlinedMoney guarda dígitos em centavos; API espera vantagem_reais em reais
-      const digitsVantagemCentavos = (valorReais.match(/([\d,]+)/)?.[0] ?? '').replace(/\D/g, '');
-      const resultReais = digitsVantagemCentavos
-        ? (Number(digitsVantagemCentavos) / 100).toFixed(2)
-        : '';
+      const resultReais = centavosDigitsParaReaisApi(valorReais);
 
       const matchItem = valorItem.match(/([\d,]+)/);
       let resultItem = matchItem ? matchItem[0].replace(/,/g, '') : '';

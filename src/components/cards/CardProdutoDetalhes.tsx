@@ -8,6 +8,11 @@ import IcoShare from '../../svg/IcoShare'
 import IcoCopy from '../../svg/IcoCopy'
 import Clipboard from '@react-native-clipboard/clipboard'
 import Toast from 'react-native-toast-message'
+import {
+  formatarVantagemReaisExibicao,
+  temVantagemPorcentagem,
+  temVantagemReais,
+} from '../../utils/cupomValores'
 
 interface PropsProduto {
   categoria_cupom: string
@@ -22,6 +27,8 @@ interface PropsProduto {
   titulo_oferta: string
   vantagem_porcentagem: string
   vantagem_reais: string
+  /** Preço do produto em reais (API) — usado na heurística de legado de vantagem_reais */
+  valor?: string | number
   status: string
   onCompartilhar?: () => void | Promise<void>
 }
@@ -39,6 +46,7 @@ export default function CardProdutoDetalhes({
   titulo_oferta,
   vantagem_porcentagem,
   vantagem_reais,
+  valor,
   status,
   onCompartilhar,
 }: PropsProduto) {
@@ -62,19 +70,8 @@ export default function CardProdutoDetalhes({
     Toast.show({ type: 'success', text1: 'Código copiado!' })
   }
 
-  /** `vantagem_reais` da API já vem em reais (ex.: "10", "500.00") */
-  function formatarVantagemReais(valor: string): string {
-    const str = String(valor ?? '').trim().replace(',', '.')
-    const num = parseFloat(str)
-    if (Number.isNaN(num)) return valor
-    return num.toLocaleString('pt-BR', {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    })
-  }
-
-  const temVantagemPorcentagem = vantagem_porcentagem && vantagem_porcentagem !== '-'
-  const temVantagemReais = vantagem_reais && vantagem_reais !== '-'
+  const showPorcentagem = temVantagemPorcentagem(vantagem_porcentagem)
+  const showReais = temVantagemReais(vantagem_reais)
 
   return (
     <View style={styles.cupom}>
@@ -105,16 +102,16 @@ export default function CardProdutoDetalhes({
         </View>
 
         {/* Destaque do desconto (formato cupom) */}
-        {(temVantagemPorcentagem || temVantagemReais) && (
+        {(showPorcentagem || showReais) && (
           <View style={styles.destaqueDesconto}>
-            {temVantagemPorcentagem && (
+            {showPorcentagem && (
               <Caption fontSize={18} fontWeight="700" color={colors.white}>
                 {vantagem_porcentagem}% de desconto
               </Caption>
             )}
-            {temVantagemReais && (
+            {showReais && (
               <Caption fontSize={18} fontWeight="700" color={colors.white}>
-                R$ {formatarVantagemReais(vantagem_reais)} de desconto
+                R$ {formatarVantagemReaisExibicao(vantagem_reais, valor)} de desconto
               </Caption>
             )}
           </View>

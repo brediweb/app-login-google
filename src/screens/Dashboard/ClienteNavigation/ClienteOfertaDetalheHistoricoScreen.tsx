@@ -28,6 +28,7 @@ interface PropsOferta {
   cupoms_disponiveis: number
   descricao_completa: string
   vantagem_porcentagem: string
+  valor?: string | number
 }
 
 export default function ClienteOfertaDetalheHistoricoScreen({ route }: { route?: any }) {
@@ -104,6 +105,7 @@ export default function ClienteOfertaDetalheHistoricoScreen({ route }: { route?:
                   cupoms_disponiveis={item.cupoms_disponiveis}
                   descricao_completa={item.descricao_completa}
                   vantagem_porcentagem={item.vantagem_porcentagem}
+                  valor={item.valor}
                 />
               </View>
             );

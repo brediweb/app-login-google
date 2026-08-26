@@ -21,6 +21,13 @@ import { View, TouchableOpacity, Text, Image, Modal, Dimensions } from 'react-na
 import { useGlobal } from '../../context/GlobalContextProvider'
 import MapView, { Marker } from 'react-native-maps'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
+import {
+  calcularValorPor,
+  formatarNumeroReais,
+  formatarVantagemReaisExibicao,
+  temVantagemReais,
+  valorProdutoParaReais,
+} from '../../utils/cupomValores'
 
 interface PropsProduto {
   qr_code?: any
@@ -92,46 +99,6 @@ export default function CardProduto(
   const [listaHorarios, setListaHorarios] = useState<HorariosProps>({})
   const [cupomUsado, setCupomUsado] = useState(false)
   const [depoimentos, setDepoimentos] = useState<any[]>([])
-
-  /** Formata `valor` da API (centavos) para exibição em reais */
-  function formatarReais(valor: string | number): string {
-    if (typeof valor === 'number') {
-      return valor.toLocaleString('pt-BR', {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
-      })
-    }
-    const str = String(valor ?? '')
-    const apenasNumeros = str.replace(/\D/g, '')
-    if (apenasNumeros.length === 0) return '0,00'
-    const num = parseInt(apenasNumeros, 10) / 100
-    return num.toLocaleString('pt-BR', {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    })
-  }
-
-  /** Converte `valor` da API (centavos) para número em reais */
-  function valorReaisNum(valor: string | number): number {
-    const str = String(valor ?? '')
-    const apenasNumeros = str.replace(/\D/g, '')
-    if (apenasNumeros.length === 0) return 0
-    return parseInt(apenasNumeros, 10) / 100
-  }
-
-  /** `vantagem_reais` da API já vem em reais (ex.: "10", "500.00") */
-  function parseVantagemReais(valor: string | number): number {
-    const str = String(valor ?? '').trim().replace(',', '.')
-    const num = parseFloat(str)
-    return Number.isNaN(num) ? 0 : num
-  }
-
-  function formatarVantagemReais(valor: string | number): string {
-    return parseVantagemReais(valor).toLocaleString('pt-BR', {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    })
-  }
 
   const handleOpenModal = () => {
     setModalVisible(true)
@@ -655,10 +622,10 @@ export default function CardProduto(
               </Text>
             </View>
           }
-          {vantagem_reais && vantagem_reais != '-' &&
+          {temVantagemReais(vantagem_reais) &&
             <View className="bg-[#FFB876]">
               <Text className="text-center text-[#9C5706] font-medium text-[16px] py-2 ">
-                R$ {formatarVantagemReais(vantagem_reais)} de desconto
+                R$ {formatarVantagemReaisExibicao(vantagem_reais, dados_gerais?.valor ?? dados_gerais?.preco)} de desconto
               </Text>
             </View>
           }
@@ -676,20 +643,24 @@ export default function CardProduto(
             className='text-sm mb-4'
           >Válido até {data_validade}</Text>
           <Paragrafo color={'#49454F'} title={descricao_simples ?? ''} />
-          {/* Valor com desconto em reais */}
+          {/* Valor com desconto — contrato API: valor/vantagem_reais em reais */}
           <Text className="text-md">
             De:{' '}
             <Text className="line-through">
-              R$ {formatarReais(dados_gerais.valor)}
+              R$ {formatarNumeroReais(valorProdutoParaReais(dados_gerais?.valor ?? dados_gerais?.preco))}
             </Text>
           </Text>
           <Text className="text-lg">
             Por:{' '}
             <Text className="font-bold">
-              {vantagem_reais != '-'
-                ? `R$ ${formatarReais(valorReaisNum(dados_gerais.valor) - parseVantagemReais(vantagem_reais))}`
-                : `R$ ${formatarReais(valorReaisNum(dados_gerais.valor) * (1 - (vantagem_porcentagem ?? 0) / 100))}`
-              }
+              {`R$ ${formatarNumeroReais(
+                calcularValorPor(
+                  dados_gerais?.valor ?? dados_gerais?.preco,
+                  vantagem_reais,
+                  vantagem_porcentagem,
+                  dados_gerais?.valor_final
+                )
+              )}`}
             </Text>
           </Text>
         </View>
