@@ -1,5 +1,5 @@
-import { View } from 'react-native'
-import React, { useEffect } from 'react'
+import { Platform, View } from 'react-native'
+import React, { useEffect, useRef } from 'react'
 import LottieView from 'lottie-react-native'
 import { useNavigate } from '../../hooks/useNavigate'
 import { useIsFocused } from '@react-navigation/native'
@@ -8,15 +8,14 @@ import AsyncStorage from '@react-native-async-storage/async-storage'
 export default function SplashScreen() {
   const isFocused = useIsFocused()
   const { navigate } = useNavigate()
+  const redirecionou = useRef(false)
 
   async function getPrimeiroAcesso() {
+    if (redirecionou.current) return
+    redirecionou.current = true
     try {
-      const storagePrimeiroAcesso = await AsyncStorage.getItem('primeiro-acesso')
-      if (storagePrimeiroAcesso != null && storagePrimeiroAcesso === 'true') {
-        navigate('LoginScreen')
-      } else {
-        navigate('LoginScreen')
-      }
+      await AsyncStorage.getItem('primeiro-acesso')
+      navigate('LoginScreen')
     } catch (error: any) {
       navigate('LoginScreen')
       console.error('Error Primeiro Acesso:', error)
@@ -24,7 +23,8 @@ export default function SplashScreen() {
   }
 
   useEffect(() => {
-    const timeoutDuration = 2000
+    if (!isFocused || redirecionou.current) return
+    const timeoutDuration = Platform.OS === 'ios' ? 600 : 2000
     const timeoutId = setTimeout(getPrimeiroAcesso, timeoutDuration)
     return () => clearTimeout(timeoutId)
   }, [isFocused])

@@ -1,5 +1,5 @@
-import { View, TouchableOpacity, Text } from 'react-native';
-import React, { useEffect, useState } from 'react';
+import { View, TouchableOpacity, Text, ScrollView } from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
 import { colors } from '../../styles/colors';
 import H2 from '../../components/typography/H2';
 import H5 from '../../components/typography/H5';
@@ -10,27 +10,21 @@ import IcoCelularLogin from '../../svg/IcoCelularLogin';
 import Caption from '../../components/typography/Caption';
 import MainLayout from '../../components/layout/MainLayout';
 import { useGlobal } from '../../context/GlobalContextProvider';
-import Geolocation from '@react-native-community/geolocation';
 import FilledButton from '../../components/buttons/FilledButton';
 import ModalTemplate from '../../components/Modals/ModalTemplate';
-import { ScrollView, Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import {
-  requestForegroundPermissionsAsync,
-} from 'expo-location';
 import Toast from 'react-native-toast-message';
 import { OneSignal } from 'react-native-onesignal';
 import { api } from 'src/service/api';
 import Loading from '@components/Loading';
 
 export default function LoginScreen() {
-  const { navigate } = useNavigate();
+  const { navigate, reset } = useNavigate();
+  const loginAutomaticoIniciado = useRef(false);
   const [loading, setLoading] = useState(true);
   const { setTipoUser, setUsuarioLogado } = useGlobal();
   const versionName = DeviceInfo.getVersion();
   const [modalVisible, setModalVisible] = useState(false);
-  const [regiao, setRegiao] = useState<any>(null);
-  const [permissionGrantedIos, setPermissionGrantedIos] = useState(false);
 
   function onLoginCliente() {
     setModalVisible(false);
@@ -75,19 +69,23 @@ export default function LoginScreen() {
     }
 
     setLoading(true)
-    OneSignal.User.addEmail(storageEmail?.toString() ?? '')
     try {
       const response = await api.post(`/login`, formdata)
 
       if (!response.data.error) {
-        submitStorageLogin(response.data.results)
+        await submitStorageLogin(response.data.results)
         setTipoUser('Anunciante')
+        OneSignal.User.addEmail(storageEmail)
         Toast.show({
           type: 'success',
           text1: 'Login realizado com sucesso!',
         })
         setUsuarioLogado(true)
-        navigate('HomeDrawerNavigation')
+        reset({
+          index: 0,
+          routes: [{ name: 'HomeDrawerNavigation' }],
+        })
+        return
       }
     } catch (error: any) {
       console.error('ERROR Login auto: ', error)
@@ -97,6 +95,11 @@ export default function LoginScreen() {
   }
 
   async function loginAutoCliente(storageEmail: string | null, storagePassword: string | null) {
+    if (!storageEmail || !storagePassword) {
+      setLoading(false)
+      return
+    }
+
     setLoading(true)
     try {
       const response = await api.post(`/login`, {
@@ -104,17 +107,21 @@ export default function LoginScreen() {
         role: "Cliente",
         password: storagePassword,
       })
-      OneSignal.User.addEmail(storageEmail?.toString() ?? '')
 
       if (!response.data.error) {
-        submitStorageLogin(response.data.results)
+        await submitStorageLogin(response.data.results)
         setTipoUser('Cliente')
+        OneSignal.User.addEmail(storageEmail)
         Toast.show({
           type: 'success',
           text1: 'Login realizado com sucesso',
         })
         setUsuarioLogado(true)
-        navigate('HomeDrawerNavigation')
+        reset({
+          index: 0,
+          routes: [{ name: 'HomeDrawerNavigation' }],
+        })
+        return
       } else {
         Toast.show({
           type: 'error',
@@ -132,71 +139,32 @@ export default function LoginScreen() {
   }
 
   const getInfosUser = async () => {
+    if (loginAutomaticoIniciado.current) return
+    loginAutomaticoIniciado.current = true
     try {
-      const jsonValue = await AsyncStorage.getItem('infos-user') as any
-      const storageEmail = await AsyncStorage.getItem('user-email')
-      const storagePassword = await AsyncStorage.getItem('user-senha')
-      const storageTipoUser = await AsyncStorage.getItem('tipo-user')
+      const [storageEmail, storagePassword, storageTipoUser] = await Promise.all([
+        AsyncStorage.getItem('user-email'),
+        AsyncStorage.getItem('user-senha'),
+        AsyncStorage.getItem('tipo-user'),
+      ])
 
-      if (storageTipoUser && storageTipoUser === 'Anunciante') {
-        setTimeout(() => {
-          loginAutoAnunciante(storageEmail, storagePassword)
-        }, 5000);
+      if (storageTipoUser === 'Anunciante') {
+        loginAutoAnunciante(storageEmail, storagePassword)
         return
-      } else if (storageTipoUser && storageTipoUser !== 'Anunciante') {
-        setTimeout(() => {
-          loginAutoCliente(storageEmail, storagePassword)
-        }, 5000);
-        return
-      } else {
-        setLoading(false)
       }
-
-      // if (JSON.parse(jsonValue)) {
-      //   setUsuarioLogado(true);
-      //   navigate('HomeDrawerNavigation');
-      // }
+      if (storageTipoUser) {
+        loginAutoCliente(storageEmail, storagePassword)
+        return
+      }
+      setLoading(false)
     } catch (error) {
-      console.error(error);
+      console.error(error)
+      setLoading(false)
     }
   };
 
-  async function getLocalizacao() {
-    Geolocation.getCurrentPosition(
-      (info) => {
-        setRegiao({
-          latitude: info.coords.latitude,
-          longitude: info.coords.longitude,
-        });
-      },
-      (error) => {
-        if (error.code === 3) {
-          console.warn('Localização: timeout. Tente em área com melhor sinal.');
-        }
-      },
-      {
-        enableHighAccuracy: true,
-        timeout: 25000,
-        maximumAge: 15000,
-      }
-    );
-  }
-
-  async function getPermissionIOS() {
-    try {
-      const { granted } = await requestForegroundPermissionsAsync();
-      setPermissionGrantedIos(granted);
-    } catch (error: any) {
-      console.error('ERRO Permissão IOS:', error);
-    }
-  }
-
   useEffect(() => {
     getInfosUser();
-    getLocalizacao();
-    if (Platform.OS === 'ios') {
-      getPermissionIOS();
-    }
   }, []);
 
   return (

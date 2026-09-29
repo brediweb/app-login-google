@@ -153,7 +153,7 @@ export default function CardProdutoDetalhes({
             <IcoCopy color={colors.primary40} />
           </View>
           <Caption fontSize={14} fontWeight="600" color={colors.primary40}>
-            Copiar cupom
+            Copiar código cupom
           </Caption>
         </TouchableOpacity>
 
