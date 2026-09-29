@@ -51,6 +51,17 @@ interface PropsProduto {
   dados_gerais?: any
 }
 
+const IMAGEM_CAPA_LOCAL = require('../../../assets/img/temporarios/produto-capa.png')
+
+function uriImagemValida(valor?: string | null) {
+  if (valor == null) return null
+  const texto = String(valor).trim()
+  if (!texto || texto === '-' || texto === 'null') return null
+  if (texto.startsWith('http://') || texto.startsWith('https://')) return texto
+  if (texto.startsWith('/')) return `https://backend.discontapp.com.br${texto}`
+  return null
+}
+
 interface HorariosProps {
   [key: string]: {
     fechado: boolean
@@ -99,6 +110,9 @@ export default function CardProduto(
   const [listaHorarios, setListaHorarios] = useState<HorariosProps>({})
   const [cupomUsado, setCupomUsado] = useState(false)
   const [depoimentos, setDepoimentos] = useState<any[]>([])
+  const [capaQuebrada, setCapaQuebrada] = useState(false)
+  const uriCapa = uriImagemValida(imagem_capa)
+  const sourceCapa = uriCapa && !capaQuebrada ? { uri: uriCapa } : IMAGEM_CAPA_LOCAL
 
   const handleOpenModal = () => {
     setModalVisible(true)
@@ -375,6 +389,10 @@ export default function CardProduto(
     getDepoimentos()
   }, [])
 
+  useEffect(() => {
+    setCapaQuebrada(false)
+  }, [imagem_capa])
+
   return (
 
     <>
@@ -467,7 +485,7 @@ export default function CardProduto(
             <TouchableOpacity onPress={() => setModalVisibleProduto(false)} className='flex-row w-full px-2'>
               <Image className='rounded-xl' source={require('../../.././assets/img/icons/seta-esquerda-white.png')} />
             </TouchableOpacity>
-            <Image source={{ uri: imagem_capa ?? 'https://api-temp.vercel.app/app-discontapp/produto-capa.png' }} className='w-full h-48 ' resizeMode='cover' />
+            <Image source={sourceCapa} onError={() => setCapaQuebrada(true)} className='w-full h-48 ' resizeMode='cover' />
             <View>
               <ScrollView showsVerticalScrollIndicator={false} className='my-4 px-4 h-32'>
                 <Caption color={colors.white} fontSize={12} >
@@ -613,7 +631,7 @@ export default function CardProduto(
           </View>
         </View>
         <TouchableOpacity onPress={() => setModalVisibleProduto(true)} className='w-full'>
-          <Image source={{ uri: imagem_capa ?? 'https://api-temp.vercel.app/app-discontapp/produto-capa.png' }} className='w-full h-40' resizeMode='cover' />
+          <Image source={sourceCapa} onError={() => setCapaQuebrada(true)} className='w-full h-40' resizeMode='cover' />
 
           {vantagem_porcentagem && vantagem_porcentagem != '-' &&
             <View className="bg-[#FFB876]">

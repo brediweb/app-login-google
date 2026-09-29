@@ -2,7 +2,6 @@ import { useState } from 'react'
 import { api } from '../../../service/api'
 import Toast from 'react-native-toast-message'
 import H5 from '../../../components/typography/H5'
-import { useNavigate } from '../../../hooks/useNavigate'
 import Caption from '../../../components/typography/Caption'
 import FilledButton from '../../../components/buttons/FilledButton'
 import InputOutlined from '../../../components/forms/InputOutlined'
@@ -11,10 +10,9 @@ import InputMascaraPaper from '../../../components/forms/InputMascaraPaper'
 import { KeyboardAvoidingView, Platform, ScrollView, View } from 'react-native'
 import MainLayoutAutenticadoSemScroll from '../../../components/layout/MainLayoutAutenticadoSemScroll'
 import React from 'react'
-import Spacing from '@components/layout/Spacing'
+import AsyncStorage from '@react-native-async-storage/async-storage'
 
 export default function SugerirEstabelecimentosScreen() {
-  const { navigate } = useNavigate()
   const [nome, setNome] = useState('')
   const [telefone, setTelefone] = useState('')
   const [loading, setLoading] = useState(false)
@@ -23,37 +21,58 @@ export default function SugerirEstabelecimentosScreen() {
   const [perfilInstagram, setPerfilInstagram] = useState('')
 
   async function onSubmit() {
-    setLoading(true)
     setErrorNome(false)
 
-    if (nome.length <= 0) {
+    if (nome.trim().length <= 0) {
       Toast.show({
         type: 'error',
         text1: 'O nome é obrigatório',
       })
       setErrorNome(true)
-      return;
+      return
     }
-    if (nome.length <= 3) {
+    if (nome.trim().length <= 3) {
       Toast.show({
         type: 'error',
         text1: 'Digite um nome válido!',
       })
       setErrorNome(true)
-      return;
+      return
     }
 
+    setLoading(true)
     try {
-      const response = await api.post(`/sugerir-estabelecimento`, {
-        nome_estabelecimento: nome,
-        telefone: telefone ?? "",
-        pefil_facebook: perfilFacebook ?? "",
-        perfil_instagram: perfilInstagram ?? "",
-      })
+      const jsonValue = await AsyncStorage.getItem('infos-user')
+      const token = jsonValue ? JSON.parse(jsonValue)?.token : null
+      if (!token) {
+        Toast.show({
+          type: 'error',
+          text1: 'Faça login para enviar a sugestão.',
+        })
+        return
+      }
+
+      const response = await api.post(
+        `/sugerir-estabelecimento`,
+        {
+          nome_estabelecimento: nome.trim(),
+          telefone: telefone.replace(/\D/g, ''),
+          perfil_facebook: perfilFacebook.trim(),
+          pefil_facebook: perfilFacebook.trim(),
+          perfil_instagram: perfilInstagram.trim(),
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+            Accept: 'application/json',
+          },
+        }
+      )
       if (!response.data.error) {
         Toast.show({
           type: 'success',
-          text1: 'Dados enviados com sucesso!',
+          text1: response.data.message ?? 'Dados enviados com sucesso!',
         })
         setNome('')
         setTelefone('')
@@ -67,13 +86,14 @@ export default function SugerirEstabelecimentosScreen() {
         })
       }
     } catch (error: any) {
-      console.error(error.response.data)
+      console.error(error?.response?.data)
       Toast.show({
         type: 'error',
-        text1: error.response.data.erro ?? 'Ocorreu um erro, tente novamente',
+        text1: error?.response?.data?.message ?? error?.response?.data?.erro ?? 'Ocorreu um erro, tente novamente',
       })
+    } finally {
+      setLoading(false)
     }
-    setLoading(false)
   }
 
   const handlePhoneMask = (value: any) => {
