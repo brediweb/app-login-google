@@ -13,23 +13,36 @@ import React from 'react'
 
 export default function ClienteCupomSucessoScreen(props: any) {
   const { navigate } = useNavigate()
-  const idOferta = props.route.params.response.data.results.id
+  const idOferta =
+    props.route?.params?.idOferta ??
+    props.route?.params?.response?.data?.results?.id ??
+    props.route?.params?.response?.data?.results ??
+    props.route?.params?.results?.id ??
+    props.route?.params?.results ??
+    props.route?.params?.id ??
+    '';
 
   async function shareLinkAndText() {
     try {
+      const link = idOferta
+        ? `https://discontapp.com.br/desconto/${idOferta}`
+        : 'https://discontapp.com.br';
       const options = {
         title: 'Compartilhar Link e Texto',
-        message: `Confira esse cupom que achei no app Discontapp: https://discontapp.com.br/desconto/${idOferta}`,
+        message: `Confira esse cupom que achei no app Discontapp: ${link}`,
       };
 
       await Share.share(options);
     } catch (error: any) {
-      console.error('Erro ao compartilhar:', error.message)
+      console.error('Erro ao compartilhar:', error?.message ?? error)
     }
   }
 
   const copyToClipboard = () => {
-    Clipboard.setString(`https://discontapp.com.br/desconto/${idOferta}`)
+    const link = idOferta
+      ? `https://discontapp.com.br/desconto/${idOferta}`
+      : 'https://discontapp.com.br';
+    Clipboard.setString(link)
     Toast.show({
       type: 'success',
       text1: 'Código copiado com sucesso!',

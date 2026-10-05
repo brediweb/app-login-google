@@ -44,6 +44,57 @@ import H1 from '@components/typography/H1';
 import React from 'react';
 import { centavosDigitsParaReaisApi } from '../../../utils/cupomValores';
 
+function parseDataLimite(validadeStr?: string | null): Date | null {
+  if (!validadeStr || typeof validadeStr !== 'string') return null;
+  const limpa = validadeStr.trim();
+  if (/^\d{2}[\/\-]\d{2}[\/\-]\d{4}/.test(limpa)) {
+    const partes = limpa.split(/[\/\-]/);
+    const dia = parseInt(partes[0], 10);
+    const mes = parseInt(partes[1], 10) - 1;
+    const ano = parseInt(partes[2], 10);
+    const d = new Date(ano, mes, dia, 23, 59, 59);
+    return isNaN(d.getTime()) ? null : d;
+  }
+  const d = new Date(limpa);
+  return isNaN(d.getTime()) ? null : d;
+}
+
+function formatarDataSegura(dateStr?: string | null, formato: string = 'dd/MM/yyyy'): string {
+  if (!dateStr) return '';
+  try {
+    const d = new Date(dateStr);
+    if (isNaN(d.getTime())) return '';
+    return format(d, formato);
+  } catch {
+    return '';
+  }
+}
+
+function normalizarCategorias(raw: any): any[] {
+  if (!raw) return [];
+  if (Array.isArray(raw)) return raw;
+  if (typeof raw === 'string') {
+    try {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) return parsed;
+      if (parsed && typeof parsed === 'object') return [parsed];
+      if (typeof parsed === 'number') return [parsed];
+    } catch {
+      if (raw.includes(',')) {
+        return raw.split(',').map((s) => s.trim()).filter(Boolean);
+      }
+      return [raw.trim()];
+    }
+  }
+  if (typeof raw === 'object') {
+    if (Array.isArray(raw.results)) return raw.results;
+    if (Array.isArray(raw.categorias)) return raw.categorias;
+    if (Array.isArray(raw.items)) return raw.items;
+    return [raw];
+  }
+  return [];
+}
+
 export default function ClienteCriaCuponScreen() {
   const { navigate } = useNavigate();
   const isFocused = useIsFocused()
@@ -53,7 +104,7 @@ export default function ClienteCriaCuponScreen() {
   const [descricao, setDescricao] = useState('');
   const [qtdCupons, setQtdCupons] = useState('');
   const [valorReais, setValorReais] = useState('');
-  const [categorias, setCategorias] = useState([]);
+  const [categorias, setCategorias] = useState<any[]>([]);
   const [codigoCupom, setCodigoCupom] = useState('');
   const [valorItem, setValorItem] = useState('');
   const [dadosUser, setDadosUser] = useState<any>({});
@@ -87,45 +138,104 @@ export default function ClienteCriaCuponScreen() {
 
   const { update, setUpdate } = useGlobal();
 
-  async function getPerfil() {
-    try {
-      const response = await api.get(`/perfil/pessoa-juridica/${dadosUser.id}`);
-      setPlanActive(response.data.results.plano_ativo);
-      setCategorias(response.data.results.perfil_id);
-    } catch (error) {
-      console.error('ERROR GET Categorias: ', error);
-    }
-    setLoading(false)
-  }
-
-  async function getDataLimite() {
-    const jsonValue = await AsyncStorage.getItem('infos-user');
-    if (jsonValue) {
-      const newJson = JSON.parse(jsonValue);
+  async function carregarDadosIniciais(userParam?: any) {
+    let currentUser = userParam || dadosUser;
+    if (!currentUser?.id || !currentUser?.token) {
       try {
-        const headers = {
-          Authorization: `Bearer ${newJson.token}`,
-        };
-        const reponse = await api.get(`/verifica-data-limite`, { headers });
-        setDataLimiteCriacao(reponse.data.results.validade);
-      } catch (error: any) {
-        console.error('ERROR GET Data Limite: ', error.response.data);
+        const jsonValue = await AsyncStorage.getItem('infos-user');
+        if (jsonValue) {
+          currentUser = JSON.parse(jsonValue);
+          setDadosUser(currentUser);
+        }
+      } catch (err) {
+        console.error('Erro ao ler infos-user:', err);
       }
+    }
+
+    if (!currentUser?.id) {
+      setLoading(false);
+      return;
+    }
+
+    const headers = {
+      Authorization: `Bearer ${currentUser.token}`,
+    };
+
+    try {
+      // 1. Buscar catálogo de categorias
+      let catalogo: any[] = [];
+      try {
+        const resCat = await api.get('/categorias', { headers });
+        catalogo = normalizarCategorias(resCat.data);
+        if (catalogo.length === 0) {
+          const resCad = await api.get('/categorias/cadastro', { headers });
+          catalogo = normalizarCategorias(resCad.data);
+        }
+      } catch (errCat: any) {
+        console.warn('Erro ao buscar catálogo de categorias:', errCat?.response?.data ?? errCat?.message);
+      }
+
+      // 2. Buscar perfil PJ
+      let perfilRaw: any = null;
+      try {
+        const response = await api.get(`/perfil/pessoa-juridica/${currentUser.id}`, { headers });
+        const res = response?.data?.results;
+        if (res) {
+          setPlanActive(Boolean(res.plano_ativo));
+          perfilRaw = res.perfil_id;
+        }
+      } catch (error: any) {
+        console.error('ERROR GET Perfil: ', error?.response?.data ?? error?.message);
+      }
+
+      // 3. Processar categorias do perfil
+      const idsPerfil = normalizarCategorias(perfilRaw).map((item: any) => {
+        if (typeof item === 'object' && item !== null) {
+          return item.id ?? item.categoria_id;
+        }
+        return item;
+      }).filter((id: any) => id != null);
+
+      if (idsPerfil.length > 0 && catalogo.length > 0) {
+        const filtradas = catalogo.filter((cat: any) =>
+          idsPerfil.some((id: any) => String(id) === String(cat.id))
+        );
+        const listaFinal = filtradas.length > 0 ? filtradas : catalogo;
+        setCategorias(listaFinal);
+        if (listaFinal.length === 1) {
+          setOptionSelected(listaFinal[0]);
+        }
+      } else if (catalogo.length > 0) {
+        setCategorias(catalogo);
+        if (catalogo.length === 1) {
+          setOptionSelected(catalogo[0]);
+        }
+      } else if (Array.isArray(perfilRaw) && perfilRaw.length > 0 && typeof perfilRaw[0] === 'object') {
+        setCategorias(perfilRaw);
+        if (perfilRaw.length === 1) {
+          setOptionSelected(perfilRaw[0]);
+        }
+      } else {
+        setCategorias([]);
+      }
+
+      // 4. Buscar data limite
+      try {
+        const resData = await api.get(`/verifica-data-limite`, { headers });
+        if (resData?.data?.results?.validade) {
+          setDataLimiteCriacao(resData.data.results.validade);
+        }
+      } catch (error: any) {
+        console.error('ERROR GET Data Limite: ', error?.response?.data ?? error?.message);
+      }
+    } finally {
+      setLoading(false);
     }
   }
 
-  const getData = async () => {
-    try {
-      const jsonValue = await AsyncStorage.getItem('infos-user');
-      if (jsonValue) {
-        const newJson = JSON.parse(jsonValue);
-        setDadosUser(newJson);
-        getDataLimite();
-      }
-    } catch (error: any) {
-      console.error(error);
-    }
-  };
+  const getData = () => carregarDadosIniciais();
+  const getPerfil = () => carregarDadosIniciais();
+  const getDataLimite = () => carregarDadosIniciais();
 
   const handleTipoVantagem = (option: string) => {
     setTipoVantagem(option);
@@ -137,10 +247,14 @@ export default function ClienteCriaCuponScreen() {
   };
 
   const showDatePicker = () => {
-    getDataLimite();
     // Se já existe uma data selecionada, usar ela, caso contrário usar a data atual
     if (dataSelecionada && dataSelecionada.length > 4) {
-      setSelectedDate(new Date(dataSelecionada));
+      const d = new Date(dataSelecionada);
+      if (!isNaN(d.getTime())) {
+        setSelectedDate(d);
+      } else {
+        setSelectedDate(new Date());
+      }
     } else {
       setSelectedDate(new Date());
     }
@@ -154,19 +268,21 @@ export default function ClienteCriaCuponScreen() {
   const handleDateChange = (event: any, date?: Date) => {
     if (Platform.OS === 'android') {
       setDatePickerVisibility(false);
-      if (event.type === 'set' && date) {
+      if (event.type === 'set' && date && !isNaN(date.getTime())) {
         setDataSelecionada(date.toISOString());
       }
     } else if (Platform.OS === 'ios') {
       // No iOS, atualiza o estado enquanto o usuário seleciona
-      if (date) {
+      if (date && !isNaN(date.getTime())) {
         setSelectedDate(date);
       }
     }
   };
 
   const handleConfirmIOS = () => {
-    setDataSelecionada(selectedDate.toISOString());
+    if (selectedDate && !isNaN(selectedDate.getTime())) {
+      setDataSelecionada(selectedDate.toISOString());
+    }
     hideDatePicker();
   };
 
@@ -332,7 +448,6 @@ export default function ClienteCriaCuponScreen() {
     const dataHoje = new Date();
     const dataEscolhida = new Date(dataSelecionada);
 
-    getData();
     setErrorTitulo(false);
     setErrorDataValidade(false);
     setErrorResumo(false);
@@ -353,7 +468,7 @@ export default function ClienteCriaCuponScreen() {
       setErrorTitulo(true);
       return;
     }
-    if (dataSelecionada.length <= 0) {
+    if (dataSelecionada.length <= 0 || isNaN(dataEscolhida.getTime())) {
       Toast.show({
         type: 'error',
         text1: 'Informe uma data de validade',
@@ -412,7 +527,7 @@ export default function ClienteCriaCuponScreen() {
     if (codigoCupom.length >= 1 && codigoCupom.length <= 9) {
       Toast.show({
         type: 'error',
-        text1: 'Código deve ter 10 carecteres',
+        text1: 'Código deve ter 10 caracteres',
       });
       setErroCodigoCupom(true);
       return;
@@ -440,11 +555,11 @@ export default function ClienteCriaCuponScreen() {
     const resultItem = matchItem ? matchItem[0] : '';
 
     if (tipoVantagem === 'Vantagem em Reais' && parseFloat(resultReais) > parseFloat(resultItem)) {
-      Alert.alert('O valor do desconto não pode ser maior que o valor do item');
+      Alert.alert('Atenção', 'O valor do desconto não pode ser maior que o valor do item');
       setErrorValueVantagem(true);
       return;
     }
-    if (!optionSelected.categorias) {
+    if (!optionSelected || (!optionSelected.categorias && !optionSelected.nome && !optionSelected.title)) {
       Toast.show({
         type: 'error',
         text1: 'Selecione uma categoria',
@@ -463,71 +578,43 @@ export default function ClienteCriaCuponScreen() {
     setLoading(true);
 
     try {
-      const headers = {
-        Authorization: `Bearer ${dadosUser.token}`,
-        'Content-Type': 'multipart/form-data',
-      };
-      const response = await api.get(`/validacao-texto`, {
-        params: {
-          texto: `${descricao} ${codigoCupom} ${resumoOferta} ${titulo}`,
-        },
-        headers: headers,
-      });
-
-      if (response.data.vocabulario_incorreto && !nextComAlerta) {
-        Toast.show({
-          type: 'error',
-          text1:
-            response.data.message ??
-            'Possui mensgem com vocabulário inrregular !',
+      if (dadosUser?.token) {
+        const headers = {
+          Authorization: `Bearer ${dadosUser.token}`,
+        };
+        const response = await api.get(`/validacao-texto`, {
+          params: {
+            texto: `${descricao} ${codigoCupom} ${resumoOferta} ${titulo}`,
+          },
+          headers: headers,
         });
-        setPalavrasErradas(response.data.results);
-        setModalCorretor(true);
-        setLoading(false);
-        return;
+
+        if (response?.data?.vocabulario_incorreto && !nextComAlerta) {
+          Toast.show({
+            type: 'error',
+            text1:
+              response?.data?.message ??
+              'Possui mensagem com vocabulário irregular!',
+          });
+          setPalavrasErradas(response?.data?.results ?? []);
+          setModalCorretor(true);
+          setLoading(false);
+          return;
+        }
       }
 
-      const novoValorVantagem = RemoveCaracteres({ text: valueVantagem });
-
-      const match = valorReais.match(/([\d,]+)/);
-      const resultReais = match ? match[0] : '';
-
-      const matchItem = valorItem.match(/([\d,]+)/);
-      let resultItem = matchItem ? matchItem[0].replace(/,/g, '') : '';
-
-      // Acrescenta zeros conforme o tamanho
-      if (resultItem.length === 1) {
-        resultItem += '000';
-      } else if (resultItem.length === 2) {
-        resultItem += '00';
-      } else if (resultItem.length === 3) {
-        resultItem += '0';
-      }
-      const resultItemNumber = Number(resultItem);
-
-      const novaImage = {
-        uri: imagemEnvio.path ?? '',
-        type: 'image/.png',
-        name: ' ',
-      };
-      const dataOriginal = new Date(dataSelecionada);
-      const dataFormatada = format(dataOriginal, ' yyyy-MM-dd');
-
-
-      setModalConfirmar(true)
-
+      setModalConfirmar(true);
     } catch (error: any) {
-      console.error(error.response.data);
+      console.warn('Aviso validação de texto: ', error?.response?.data ?? error?.message ?? error);
+      setModalConfirmar(true);
     }
     setLoading(false);
   }
-
 
   async function onSubmit() {
     const dataHoje = new Date();
     const dataEscolhida = new Date(dataSelecionada);
 
-    getData();
     setErrorTitulo(false);
     setErrorDataValidade(false);
     setErrorResumo(false);
@@ -548,7 +635,7 @@ export default function ClienteCriaCuponScreen() {
       setErrorTitulo(true);
       return;
     }
-    if (dataSelecionada.length <= 0) {
+    if (dataSelecionada.length <= 0 || isNaN(dataEscolhida.getTime())) {
       Toast.show({
         type: 'error',
         text1: 'Informe uma data de validade',
@@ -607,7 +694,7 @@ export default function ClienteCriaCuponScreen() {
     if (codigoCupom.length >= 1 && codigoCupom.length <= 9) {
       Toast.show({
         type: 'error',
-        text1: 'Código deve ter 10 carecteres',
+        text1: 'Código deve ter 10 caracteres',
       });
       setErroCodigoCupom(true);
       return;
@@ -632,14 +719,14 @@ export default function ClienteCriaCuponScreen() {
     const resultReais = match ? match[0] : '';
 
     const matchItem = valorItem.match(/([\d,]+)/);
-    const resultItem = matchItem ? matchItem[0] : '';
+    const resultItemVal = matchItem ? matchItem[0] : '';
 
-    if (tipoVantagem === 'Vantagem em Reais' && parseFloat(resultReais) > parseFloat(resultItem)) {
-      Alert.alert('O valor do desconto não pode ser maior que o valor do item');
+    if (tipoVantagem === 'Vantagem em Reais' && parseFloat(resultReais) > parseFloat(resultItemVal)) {
+      Alert.alert('Atenção', 'O valor do desconto não pode ser maior que o valor do item');
       setErrorValueVantagem(true);
       return;
     }
-    if (!optionSelected.categorias) {
+    if (!optionSelected || (!optionSelected.categorias && !optionSelected.nome && !optionSelected.title)) {
       Toast.show({
         type: 'error',
         text1: 'Selecione uma categoria',
@@ -658,37 +745,38 @@ export default function ClienteCriaCuponScreen() {
     setLoading(true);
 
     try {
-      const headers = {
-        Authorization: `Bearer ${dadosUser.token}`,
-        'Content-Type': 'multipart/form-data',
-      };
-      const response = await api.get(`/validacao-texto`, {
-        params: {
-          texto: `${descricao} ${codigoCupom} ${resumoOferta} ${titulo}`,
-        },
-        headers: headers,
-      });
-
-      if (response.data.vocabulario_incorreto && !nextComAlerta) {
-        Toast.show({
-          type: 'error',
-          text1:
-            response.data.message ??
-            'Possui mensgem com vocabulário inrregular !',
+      if (dadosUser?.token) {
+        const headers = {
+          Authorization: `Bearer ${dadosUser.token}`,
+        };
+        const response = await api.get(`/validacao-texto`, {
+          params: {
+            texto: `${descricao} ${codigoCupom} ${resumoOferta} ${titulo}`,
+          },
+          headers: headers,
         });
-        setPalavrasErradas(response.data.results);
-        setModalCorretor(true);
-        setLoading(false);
-        return;
+
+        if (response?.data?.vocabulario_incorreto && !nextComAlerta) {
+          Toast.show({
+            type: 'error',
+            text1:
+              response?.data?.message ??
+              'Possui mensagem com vocabulário irregular!',
+          });
+          setPalavrasErradas(response?.data?.results ?? []);
+          setModalCorretor(true);
+          setLoading(false);
+          return;
+        }
       }
 
       const novoValorVantagem = RemoveCaracteres({ text: valueVantagem });
 
       // InputOutlinedMoney guarda dígitos em centavos; API espera vantagem_reais em reais
-      const resultReais = centavosDigitsParaReaisApi(valorReais);
+      const resultReaisApi = centavosDigitsParaReaisApi(valorReais);
 
-      const matchItem = valorItem.match(/([\d,]+)/);
-      let resultItem = matchItem ? matchItem[0].replace(/,/g, '') : '';
+      const matchItemDigits = valorItem.match(/([\d,]+)/);
+      let resultItem = matchItemDigits ? matchItemDigits[0].replace(/,/g, '') : '';
 
       // Acrescenta zeros conforme o tamanho
       if (resultItem.length === 1) {
@@ -701,16 +789,18 @@ export default function ClienteCriaCuponScreen() {
       const resultItemNumber = Number(resultItem);
 
       const novaImage = {
-        uri: imagemEnvio.path ?? '',
-        type: 'image/.png',
-        name: ' ',
+        uri: imagemEnvio?.path ?? imagemEnvio?.uri ?? (typeof imagemEnvio === 'string' ? imagemEnvio : ''),
+        type: imagemEnvio?.mime ?? 'image/jpeg',
+        name: imagemEnvio?.filename ?? 'imagem_cupom.jpg',
       };
       const dataOriginal = new Date(dataSelecionada);
-      const dataFormatada = format(dataOriginal, ' yyyy-MM-dd');
+      const dataFormatada = !isNaN(dataOriginal.getTime()) ? format(dataOriginal, 'yyyy-MM-dd') : '';
 
       const formdata = new FormData();
       const vantagemEnvio =
         tipoVantagem === 'Vantagem Porcentagem' ? 'porcentagem' : 'quantia';
+
+      const nomeCategoria = optionSelected.categorias || optionSelected.nome || optionSelected.title || '';
 
       formdata.append('titulo_oferta', `${titulo}`);
       formdata.append('data_validade', `${dataFormatada}`);
@@ -720,15 +810,15 @@ export default function ClienteCriaCuponScreen() {
       formdata.append('codigo_cupom', `${codigoCupom}`);
       formdata.append('imagem_cupom', novaImage as any);
       formdata.append('quantidade_cupons', `${qtdCupons}`);
-      formdata.append('categoria_cupom', `${optionSelected.categorias}`);
-      formdata.append('id_categoria_cupom', `${optionSelected.id}`);
+      formdata.append('categoria_cupom', `${nomeCategoria}`);
+      formdata.append('id_categoria_cupom', `${optionSelected.id ?? ''}`);
       if (vantagemEnvio === 'porcentagem') {
         formdata.append('vantagem_porcentagem', `${novoValorVantagem}`);
         formdata.append('vantagem_reais', '-');
       }
       if (vantagemEnvio === 'quantia') {
         formdata.append('vantagem_porcentagem', '-');
-        formdata.append('vantagem_reais', `${resultReais}`);
+        formdata.append('vantagem_reais', `${resultReaisApi}`);
       }
 
       try {
@@ -741,7 +831,7 @@ export default function ClienteCriaCuponScreen() {
           type: 'success',
           text1: 'Oferta criada com sucesso!',
         });
-        setModalConfirmar(false)
+        setModalConfirmar(false);
         setValorReais('');
         setTitulo('');
         setFilial('');
@@ -751,31 +841,39 @@ export default function ClienteCriaCuponScreen() {
         setResumoOferta('');
         setTipoVantagem('');
         setValueVantagem('');
-        setOptionSelected('');
+        setOptionSelected({});
         setDataSelecionada('');
         setImagemSelecionada('');
         setDataLimiteCriacao('');
         setValorItem('');
         setNextComAlerta(false);
         setUpdate(update + 1);
-        getPerfil()
-        navigate('ClienteCupomSucessoScreen', { response });
+        carregarDadosIniciais();
+
+        const resultsData = response?.data?.results;
+        const cupomId =
+          resultsData?.id ??
+          resultsData?.id_oferta ??
+          (typeof resultsData === 'number' || typeof resultsData === 'string'
+            ? resultsData
+            : response?.data?.id ?? '');
+
+        navigate('ClienteCupomSucessoScreen', { idOferta: String(cupomId) });
       } catch (error: any) {
-        setModalConfirmar(false)
-        console.error('ERROR POST Cria Cupom: ', error?.response?.data?.message);
-        Alert.alert(
-          'Error', error?.response?.data?.message ??
-        'Verifique sua conexão com a internet',
-        )
+        setModalConfirmar(false);
+        const errMsg =
+          error?.response?.data?.message ??
+          error?.message ??
+          'Verifique sua conexão com a internet';
+        console.error('ERROR POST Cria Cupom: ', errMsg);
+        Alert.alert('Erro', errMsg);
         Toast.show({
           type: 'error',
-          text1:
-            error?.response?.data?.message ??
-            'Verifique sua conexão com a internet',
+          text1: errMsg,
         });
       }
     } catch (error: any) {
-      console.error(error.response.data);
+      console.error(error?.response?.data ?? error?.message ?? error);
     }
     setLoading(false);
   }
@@ -792,8 +890,7 @@ export default function ClienteCriaCuponScreen() {
   }
 
   useEffect(() => {
-    getData();
-    getPerfil();
+    carregarDadosIniciais();
   }, []);
 
   useEffect(() => {
@@ -806,13 +903,8 @@ export default function ClienteCriaCuponScreen() {
   }, [valueVantagem]);
 
   useEffect(() => {
-    getPerfil();
-  }, [dadosUser]);
-
-  useEffect(() => {
     if (isFocused) {
-      getData();
-      getPerfil();
+      carregarDadosIniciais();
     }
   }, [isFocused]);
 
@@ -915,15 +1007,15 @@ export default function ClienteCriaCuponScreen() {
                 label="Título da oferta"
                 keyboardType={'default'}
               />
-              {dataSelecionada &&
+              {dataSelecionada ? (
                 <InputOutlined
                   mt={10}
                   keyboardType={'default'}
                   edicao={false}
                   label='Data de Validade'
-                  value={format(new Date(dataSelecionada), 'dd/MM/yyyy') ?? 'Data de validade'}
+                  value={formatarDataSegura(dataSelecionada, 'dd/MM/yyyy') || 'Data de validade'}
                 />
-              }
+              ) : null}
               <Text
                 className="mb-1 mt-4 font-medium"
                 style={{ color: errorTipoVantagem ? colors.error40 : '#49454F' }}
@@ -1023,46 +1115,37 @@ export default function ClienteCriaCuponScreen() {
                 Categoria selecionada:
               </Text>
               <View className="w-full flex justify-start items-center">
-                {categorias &&
-                  categorias.map((option: any) => (
-                    <TouchableOpacity
-                      key={option.id}
-                    >
-                      {option.id === optionSelected?.id &&
-                        <View
-                          className="flex-row items-center justify-center"
-                        >
-                          {option.title != '' ? (
-                            <View className="mb-3">
-                              {option.icon ? (
-                                <View className="scale-75">{option.icon}</View>
-                              ) : (
-                                <Image
-                                  className="w-12 h-12"
-                                  source={{ uri: option.icone }}
-                                />
-                              )}
-                            </View>
-                          ) : option.icon ? (
-                            <View className="scale-75">{option.icon}</View>
-                          ) : (
+                {Array.isArray(categorias) &&
+                  categorias.map((option: any) => {
+                    if (!option || option.id !== optionSelected?.id) return null;
+                    const catNome = option.categorias || option.nome || option.title || '';
+                    return (
+                      <View
+                        key={String(option.id)}
+                        className="flex-row items-center justify-center"
+                      >
+                        <View className="mb-3">
+                          {option.icone ? (
                             <Image
                               className="w-12 h-12"
+                              resizeMode="contain"
                               source={{ uri: option.icone }}
                             />
-                          )}
-                          {option.title != '' && (
-                            <View className="absolute bottom-0">
-                              <Paragrafo
-                                color={'#2F009C'}
-                                title={option.categorias}
-                              />
-                            </View>
-                          )}
+                          ) : option.icon ? (
+                            <View className="scale-75">{option.icon}</View>
+                          ) : null}
                         </View>
-                      }
-                    </TouchableOpacity>
-                  ))}
+                        {catNome ? (
+                          <View className="absolute bottom-0">
+                            <Paragrafo
+                              color={'#2F009C'}
+                              title={catNome}
+                            />
+                          </View>
+                        ) : null}
+                      </View>
+                    );
+                  })}
               </View>
 
               <Text className="mb-2 font-medium mt-2">
@@ -1119,11 +1202,17 @@ export default function ClienteCriaCuponScreen() {
           {isDatePickerVisible && (
             <>
               <DateTimePicker
-                value={selectedDate}
+                value={!isNaN(selectedDate.getTime()) ? selectedDate : new Date()}
                 mode="date"
                 display={Platform.OS === 'ios' ? 'spinner' : 'default'}
                 minimumDate={new Date()}
-                maximumDate={dataLimiteCriacao ? new Date(dataLimiteCriacao) : undefined}
+                maximumDate={(() => {
+                  if (!dataLimiteCriacao) return undefined;
+                  const parsed = parseDataLimite(dataLimiteCriacao);
+                  if (!parsed || isNaN(parsed.getTime())) return undefined;
+                  if (parsed.getTime() <= Date.now()) return undefined;
+                  return parsed;
+                })()}
                 onChange={handleDateChange}
                 locale="pt-BR"
                 style={Platform.OS === 'ios' ? { width: '100%', height: 200 } : undefined}
@@ -1156,39 +1245,16 @@ export default function ClienteCriaCuponScreen() {
               )}
             </>
           )}
-          {errorDataValidade ? (
-            <TouchableOpacity
-              onPress={showDatePicker}
-              className="bg-white overflow-scroll border-solid border-[#f01] border-[1px] rounded-[4px] mt-5 mb-0 pb-0"
-            >
-              {dataSelecionada.length <= 4 ? (
-                <Text className="text-[#49454F] text-[16px] my-4 ml-4">
-                  Data de validade
-                </Text>
-              ) : (
-                <Text className="text-[#49454F] text-[16px] my-4 ml-4">
-                  {format(new Date(dataSelecionada), 'dd/MM/yyyy') ??
-                    'Data de validade'}
-                </Text>
-              )}
-            </TouchableOpacity>
-          ) : (
-            <TouchableOpacity
-              onPress={showDatePicker}
-              className="bg-white overflow-scroll border-solid border-[#49454F] border-[1px] rounded-[4px] mt-5 mb-0 pb-0"
-            >
-              {dataSelecionada.length <= 4 ? (
-                <Text className="text-[#49454F] text-[16px] my-4 ml-4">
-                  Data de validade
-                </Text>
-              ) : (
-                <Text className="text-[#49454F] text-[16px] my-4 ml-4">
-                  {format(new Date(dataSelecionada), 'dd/MM/yyyy') ??
-                    'Data de validade'}
-                </Text>
-              )}
-            </TouchableOpacity>
-          )}
+          <TouchableOpacity
+            onPress={showDatePicker}
+            className={`bg-white overflow-scroll border-solid ${
+              errorDataValidade ? 'border-[#f01]' : 'border-[#49454F]'
+            } border-[1px] rounded-[4px] mt-5 mb-0 pb-0`}
+          >
+            <Text className="text-[#49454F] text-[16px] my-4 ml-4">
+              {formatarDataSegura(dataSelecionada, 'dd/MM/yyyy') || 'Data de validade'}
+            </Text>
+          </TouchableOpacity>
 
           <InputArea
             mt={12}
@@ -1281,84 +1347,49 @@ export default function ClienteCriaCuponScreen() {
             Selecione uma categoria:
           </Text>
           <View className="w-full flex-wrap  flex-row justify-start flex gap-1 mb-2">
-            {categorias &&
-              categorias.map((option: any) => (
-                <TouchableOpacity
-                  key={option.id}
-                  className="w-[25vw] h-[25vw]"
-                  onPress={() => setOptionSelected(option)}
-                >
-                  {option.id === optionSelected?.id ? (
+            {Array.isArray(categorias) &&
+              categorias.map((option: any) => {
+                if (!option) return null;
+                const isSelected = option.id === optionSelected?.id;
+                const catNome = option.categorias || option.nome || option.title || '';
+                const bgImage = isSelected
+                  ? require('../../../../assets/img/bg/bg-radio-button-selectd.png')
+                  : require('../../../../assets/img/bg/bg-radio-button.png');
+
+                return (
+                  <TouchableOpacity
+                    key={String(option.id)}
+                    className="w-[25vw] h-[25vw]"
+                    onPress={() => setOptionSelected(option)}
+                  >
                     <ImageBackground
                       className="flex-1 items-center justify-center"
                       resizeMode="contain"
-                      source={require('../../../../assets/img/bg/bg-radio-button-selectd.png')}
+                      source={bgImage}
                     >
-                      {option.title != '' ? (
-                        <View className="mb-3">
-                          {option.icon ? (
-                            <View className="scale-75">{option.icon}</View>
-                          ) : (
-                            <Image
-                              className="w-12 h-12"
-                              source={{ uri: option.icone }}
-                            />
-                          )}
-                        </View>
-                      ) : option.icon ? (
-                        <View className="scale-75">{option.icon}</View>
-                      ) : (
-                        <Image
-                          className="w-12 h-12"
-                          source={{ uri: option.icone }}
-                        />
-                      )}
-                      {option.title != '' && (
+                      <View className="mb-3">
+                        {option.icone ? (
+                          <Image
+                            className="w-12 h-12"
+                            resizeMode="contain"
+                            source={{ uri: option.icone }}
+                          />
+                        ) : option.icon ? (
+                          <View className="scale-75">{option.icon}</View>
+                        ) : null}
+                      </View>
+                      {catNome ? (
                         <View className="absolute bottom-2">
                           <Paragrafo
                             color={'#2F009C'}
-                            title={option.categorias}
+                            title={catNome}
                           />
                         </View>
-                      )}
+                      ) : null}
                     </ImageBackground>
-                  ) : (
-                    <ImageBackground
-                      className="flex-1 items-center justify-center"
-                      resizeMode="contain"
-                      source={require('../../../../assets/img/bg/bg-radio-button.png')}
-                    >
-                      {option.title != '' ? (
-                        <View className="mb-3">
-                          {option.icon ? (
-                            <View className="scale-75">{option.icon}</View>
-                          ) : (
-                            <Image
-                              className="w-12 h-12"
-                              source={{ uri: option.icone }}
-                            />
-                          )}
-                        </View>
-                      ) : option.icon ? (
-                        <View className="scale-75">{option.icon}</View>
-                      ) : (
-                        <Image
-                          className="w-12 h-12"
-                          source={{ uri: option.icone }}
-                        />
-                      )}
-                      {option.title != '' && (
-                        <View className="absolute bottom-2">
-                          <Paragrafo
-                            color={'#2F009C'}
-                            title={option.categorias}
-                          />
-                        </View>
-                      )}
-                    </ImageBackground>
-                  )}
-                </TouchableOpacity>
-              ))}
+                  </TouchableOpacity>
+                );
+              })}
           </View>
 
           {imagemSelecionada ? (
