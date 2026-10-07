@@ -42,7 +42,7 @@ import { useIsFocused } from '@react-navigation/native';
 import H2 from '@components/typography/H2';
 import H1 from '@components/typography/H1';
 import React from 'react';
-import { centavosDigitsParaReaisApi } from '../../../utils/cupomValores';
+import { centavosDigitsParaApi } from '../../../utils/cupomValores';
 
 function parseDataLimite(validadeStr?: string | null): Date | null {
   if (!validadeStr || typeof validadeStr !== 'string') return null;
@@ -772,21 +772,10 @@ export default function ClienteCriaCuponScreen() {
 
       const novoValorVantagem = RemoveCaracteres({ text: valueVantagem });
 
-      // InputOutlinedMoney guarda dígitos em centavos; API espera vantagem_reais em reais
-      const resultReaisApi = centavosDigitsParaReaisApi(valorReais);
-
-      const matchItemDigits = valorItem.match(/([\d,]+)/);
-      let resultItem = matchItemDigits ? matchItemDigits[0].replace(/,/g, '') : '';
-
-      // Acrescenta zeros conforme o tamanho
-      if (resultItem.length === 1) {
-        resultItem += '000';
-      } else if (resultItem.length === 2) {
-        resultItem += '00';
-      } else if (resultItem.length === 3) {
-        resultItem += '0';
-      }
-      const resultItemNumber = Number(resultItem);
+      // InputOutlinedMoney guarda dígitos em centavos — mesmo padrão do campo `valor`
+      // (o backend divide por 100). Enviar "10.00" fazia a vantagem virar R$ 0,10.
+      const vantagemCentavosApi = centavosDigitsParaApi(valorReais);
+      const resultItemNumber = Number(centavosDigitsParaApi(valorItem));
 
       const novaImage = {
         uri: imagemEnvio?.path ?? imagemEnvio?.uri ?? (typeof imagemEnvio === 'string' ? imagemEnvio : ''),
@@ -818,7 +807,7 @@ export default function ClienteCriaCuponScreen() {
       }
       if (vantagemEnvio === 'quantia') {
         formdata.append('vantagem_porcentagem', '-');
-        formdata.append('vantagem_reais', `${resultReaisApi}`);
+        formdata.append('vantagem_reais', `${vantagemCentavosApi}`);
       }
 
       try {

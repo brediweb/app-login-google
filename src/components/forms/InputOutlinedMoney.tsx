@@ -24,10 +24,9 @@ function formatToReal(value: string): string {
   const digits = value.replace(/\D/g, '');
   if (digits.length === 0) return '';
   const num = parseInt(digits, 10) / 100;
-  return num.toLocaleString('pt-BR', {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  });
+  const [inteiro, decimal = '00'] = num.toFixed(2).split('.');
+  const inteiroComMilhar = inteiro.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+  return `${inteiroComMilhar},${decimal}`;
 }
 
 /** Extrai apenas dígitos do texto (valor em centavos para compatibilidade com validações existentes) */
